@@ -1,4 +1,4 @@
-version: '3'
+#version: '3'
 
 services:
   web:
@@ -22,7 +22,10 @@ services:
       - "5433:5432"
     networks:
       - pg-network
-  
+    volumes:
+      - ./docker/db:/docker-entrypoint-initdb.d
+      
+
   php:
     build:
       context: .

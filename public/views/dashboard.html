@@ -1,17 +1,79 @@
 <!DOCTYPE html>
 <html lang="pl">
 <head>
-	<meta charset="UTF-8">
-	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>Dashboard</title>
-    <link href="../styles/main.css" rel="stylesheet">
-	
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+    <link href="/public/styles/main.css" rel="stylesheet">
+    
 </head>
 <body>
-	<h1>dashboard</h1>
-	<p>hej, heja hej.</p>
-	<p><a href="/">Wróć na stronę główną</a></p>
-	<script src="../scripts/main.js" defer></script>
+    <nav>
+        <div class="nav-brand">
+            <img src="/public/images/logo.png" alt="MemoRise Logo" class="logo">
+        </div>
+        <ul>
+            <li><a href="/dashboard">Strona główna</a></li>
+            <li><a href="/progress">Twój progres</a></li>
+            <li><a href="/account">Twoje konto</a></li>
+            <li><a href="/logout">Wyloguj</a></li>
+        </ul>
+    </nav>
+
+    <div class="container">
+        <main>
+            <section class="class-selection">
+                <h2>Wybierz klasę:</h2>
+                <div class="class-list">
+                    <div class="class-item">
+                        <div class="class-info">
+                            <span class="flag">🇩🇪</span>
+                            <div>
+                                <h3>Klasa 4a - niemiecki</h3>
+                                <p class="teacher">mgr Joanna Woźniak</p>
+                            </div>
+                        </div>
+                        <button class="btn-primary">Wejdź</button>
+                    </div>
+                    <div class="class-item">
+                        <div class="class-info">
+                            <span class="flag">🇪🇸</span>
+                            <div>
+                                <h3>4a - esp</h3>
+                                <p class="teacher">mgr Jan Gwóźdź</p>
+                            </div>
+                        </div>
+                        <button class="btn-primary">Wejdź</button>
+                    </div>
+                </div>
+                <a href="#" class="add-class">dołącz do nowej klasy</a>
+            </section>
+
+            <section class="search-community">
+                <h2>Wyszukaj wśród społeczności</h2>
+                <div class="search-box">
+                    <input type="text" placeholder="Wpisz język">
+                    <button class="btn-clear">×</button>
+                </div>
+                <button class="btn-primary btn-search">Wyszukaj</button>
+            </section>
+        </main>
+
+        <aside>
+            <div class="flashcard-preview">
+                <div class="flashcard-header">
+                    <span class="info-icon">ℹ</span>
+                    <h3>Zadanie z (Klasa 4a - niemiecki)</h3>
+                    <button class="close-btn">×</button>
+                </div>
+                <p class="flashcard-question">Proszę rozwiązać die Tiere do poniedzialku</p>
+                <button class="btn-primary">Przejdź do klasy</button>
+                <p class="ignore-text">Ignoruj trwale</p>
+            </div>
+        </aside>
+    </div>
+
+    <script src="/public/scripts/main.js" defer></script>
 </body>
 </html>

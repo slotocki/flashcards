@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="/public/styles/login.css" rel="stylesheet">
+    <title>Rejestracja - MemoRise</title>
+</head>
+<body>
+    <div class="login-container">
+        <img src="/public/images/logo.png" alt="MemoRise Logo" class="logo">
+        
+        <?php if(isset($messages)): ?>
+            <div class="error-message"><?= $messages ?></div>
+        <?php endif; ?>
+        
+        <form class="login-form" method="POST" action="/register">
+            <div class="input-group">
+                <label for="email">Email</label>
+                <input name="email" type="email" id="email" placeholder="Wpisz" required autocomplete="email">
+            </div>
+
+            <div class="input-group">
+                <label for="firstName">Imię</label>
+                <input name="firstName" type="text" id="firstName" placeholder="Wpisz" required autocomplete="given-name">
+            </div>
+
+            <div class="input-group">
+                <label for="lastName">Nazwisko</label>
+                <input name="lastName" type="text" id="lastName" placeholder="Wpisz" required autocomplete="family-name">
+            </div>
+            
+            <div class="input-group">
+                <label for="password">Hasło</label>
+                <input name="password" type="password" id="password" placeholder="Wpisz" required autocomplete="new-password">
+            </div>
+
+            <div class="input-group">
+                <label for="confirmPassword">Powtórz hasło</label>
+                <input name="confirmPassword" type="password" id="confirmPassword" placeholder="Wpisz" required autocomplete="new-password">
+            </div>
+            
+            <button type="submit" class="btn-login">Zarejestruj się</button>
+        </form>
+        
+        <a href="/login" class="register-link">Masz już konto? Zaloguj się</a>
+    </div>
+</body>
+</html>
