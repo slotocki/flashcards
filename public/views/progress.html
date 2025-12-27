@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Twój progres - MemoRise</title>
+    <link href="/public/styles/main.css" rel="stylesheet">
+    <link href="/public/styles/progress.css" rel="stylesheet">
+</head>
+<body>
+    <nav>
+        <div class="nav-brand">
+            <a href="/dashboard"><img src="/public/images/logo.png" alt="MemoRise Logo" class="logo"></a>
+        </div>
+        <ul>
+            <li><a href="/dashboard">Strona główna</a></li>
+            <li><a href="/community">Społeczność</a></li>
+            <li><a href="/progress" class="active">Twój progres</a></li>
+            <li><a href="/account">Twoje konto</a></li>
+            <li><a href="#" onclick="logout(); return false;">Wyloguj</a></li>
+        </ul>
+    </nav>
+
+    <div class="container">
+        <main class="progress-container">
+            <h1>Twój progres</h1>
+            <p class="loading">Ładowanie statystyk...</p>
+        </main>
+    </div>
+
+    <script src="/public/scripts/api.js"></script>
+    <script src="/public/scripts/auth.js"></script>
+    <script src="/public/scripts/progress.js"></script>
+</body>
+</html>

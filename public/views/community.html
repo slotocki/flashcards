@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Społeczność - MemoRise</title>
+    <link href="/public/styles/main.css" rel="stylesheet">
+</head>
+<body>
+    <nav>
+        <div class="nav-brand">
+            <a href="/dashboard"><img src="/public/images/logo.png" alt="MemoRise Logo" class="logo"></a>
+        </div>
+        <ul>
+            <li><a href="/dashboard">Strona główna</a></li>
+            <li><a href="/community" class="active">Społeczność</a></li>
+            <li><a href="/progress">Twój progres</a></li>
+            <li><a href="/account">Twoje konto</a></li>
+            <li><a href="#" onclick="logout(); return false;">Wyloguj</a></li>
+        </ul>
+    </nav>
+
+    <div class="container community-container">
+        <main class="community-main">
+            <!-- Sekcja wyszukiwania -->
+            <section class="community-search-section">
+                <h1>🌍 Społeczność MemoRise</h1>
+                <p class="community-subtitle">Odkryj publiczne zestawy fiszek stworzone przez innych użytkowników</p>
+                
+                <div class="search-bar">
+                    <input type="text" id="searchInput" placeholder="Szukaj po nazwie, języku lub nauczycielu..." />
+                    <button id="searchBtn" class="btn-primary">Szukaj</button>
+                </div>
+                
+                <div class="sort-options">
+                    <label>Sortuj:</label>
+                    <select id="sortSelect">
+                        <option value="popular">Najpopularniejsze</option>
+                        <option value="rating">Najlepiej oceniane</option>
+                        <option value="newest">Najnowsze</option>
+                        <option value="views">Najwięcej wyświetleń</option>
+                    </select>
+                </div>
+            </section>
+
+            <!-- Moje subskrypcje -->
+            <section class="community-section subscribed-section">
+                <h2>📚 Moje subskrypcje</h2>
+                <div class="subscribed-decks-list">
+                    <p class="loading">Ładowanie subskrybowanych zestawów...</p>
+                </div>
+            </section>
+
+            <!-- Publiczne decki -->
+            <section class="community-section public-section">
+                <h2>🔍 Przeglądaj publiczne zestawy</h2>
+                <div class="public-decks-list">
+                    <p class="loading">Ładowanie zestawów...</p>
+                </div>
+                
+                <div class="pagination" id="pagination" style="display: none;">
+                    <button id="prevPage" class="btn-secondary" disabled>← Poprzednia</button>
+                    <span id="pageInfo">Strona 1 z 1</span>
+                    <button id="nextPage" class="btn-secondary">Następna →</button>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Modal szczegółów decku -->
+    <div id="deckDetailModal" class="modal" style="display: none;">
+        <div class="modal-content modal-large">
+            <div class="modal-header">
+                <h2 id="modalDeckTitle">Szczegóły zestawu</h2>
+                <button class="close-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="deck-detail-info">
+                    <img id="modalDeckImage" class="deck-detail-image" src="/public/images/default-deck.png" alt="Okładka zestawu" />
+                    <div class="deck-detail-meta">
+                        <p><strong>Autor:</strong> <span id="modalDeckTeacher">-</span></p>
+                        <p><strong>Klasa:</strong> <span id="modalDeckClass">-</span></p>
+                        <p><strong>Poziom:</strong> <span id="modalDeckLevel">-</span></p>
+                        <p><strong>Liczba fiszek:</strong> <span id="modalDeckCardCount">-</span></p>
+                        <p><strong>Wyświetlenia:</strong> <span id="modalDeckViews">-</span></p>
+                        <p id="modalDeckDescription" class="deck-description"></p>
+                    </div>
+                </div>
+                
+                <div class="deck-rating-section">
+                    <h3>Ocena</h3>
+                    <div class="stars-display">
+                        <span class="average-rating" id="modalAverageRating">0.0</span>
+                        <div class="stars" id="modalStars">★★★★★</div>
+                        <span class="ratings-count">(<span id="modalRatingsCount">0</span> ocen)</span>
+                    </div>
+                    
+                    <div class="user-rating" id="userRatingSection">
+                        <p>Twoja ocena:</p>
+                        <div class="star-rating" id="userStarRating">
+                            <span data-rating="1">☆</span>
+                            <span data-rating="2">☆</span>
+                            <span data-rating="3">☆</span>
+                            <span data-rating="4">☆</span>
+                            <span data-rating="5">☆</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="deck-share-section">
+                    <h3>Udostępnij</h3>
+                    <div class="share-link">
+                        <input type="text" id="shareLinkInput" readonly />
+                        <button id="copyShareLink" class="btn-secondary">Kopiuj</button>
+                    </div>
+                </div>
+                
+                <div class="deck-cards-preview">
+                    <h3>Podgląd fiszek</h3>
+                    <div class="cards-preview-list" id="cardsPreviewList">
+                        <!-- Fiszki będą ładowane dynamicznie -->
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="subscribeBtn" class="btn-primary">Subskrybuj</button>
+                <button id="studyDeckBtn" class="btn-secondary">Rozpocznij naukę</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/public/scripts/api.js"></script>
+    <script src="/public/scripts/main.js"></script>
+    <script src="/public/scripts/auth.js"></script>
+    <script src="/public/scripts/community.js"></script>
+</body>
+</html>

@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Klasa - MemoRise</title>
+    <link href="/public/styles/main.css" rel="stylesheet">
+</head>
+<body>
+    <nav>
+        <div class="nav-brand">
+            <a href="/dashboard"><img src="/public/images/logo.png" alt="MemoRise Logo" class="logo"></a>
+        </div>
+        <ul>
+            <li><a href="/dashboard">Strona główna</a></li>
+            <li><a href="/community">Społeczność</a></li>
+            <li><a href="/progress">Twój progres</a></li>
+            <li><a href="/account">Twoje konto</a></li>
+            <li><a href="#" onclick="logout(); return false;">Wyloguj</a></li>
+        </ul>
+    </nav>
+
+    <div class="container">
+        <main class="class-view-container">
+            <header class="class-header">
+                <a href="/dashboard" class="back-link">← Wróć do klas</a>
+                <div class="class-title-section">
+                    <span class="class-flag" id="classFlag">📚</span>
+                    <div>
+                        <h1 id="className">Ładowanie...</h1>
+                        <p class="class-teacher" id="classTeacher"></p>
+                    </div>
+                </div>
+            </header>
+            
+            <section class="decks-section">
+                <h2>Zestawy fiszek</h2>
+                <div class="decks-grid" id="decksList">
+                    <p class="loading">Ładowanie zestawów...</p>
+                </div>
+            </section>
+            
+            <section class="tasks-section" id="tasksSection" style="display: none;">
+                <h2>Zadania do wykonania</h2>
+                <div class="tasks-list" id="tasksList"></div>
+            </section>
+        </main>
+    </div>
+
+    <script src="/public/scripts/api.js"></script>
+    <script src="/public/scripts/auth.js"></script>
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const classId = urlParams.get('id');
+        
+        if (!classId) {
+            window.location.href = '/dashboard';
+        }
+        
+        document.addEventListener('DOMContentLoaded', async () => {
+            await loadClassDetails();
+            await loadDecks();
+            await loadTasks();
+        });
+        
+        const languageFlags = {
+            'de': '🇩🇪', 'en': '🇬🇧', 'es': '🇪🇸', 'fr': '🇫🇷',
+            'it': '🇮🇹', 'ru': '🇷🇺', 'pl': '🇵🇱', 'ja': '🇯🇵', 'zh': '🇨🇳'
+        };
+        
+        function getLanguageFlag(language) {
+            if (!language) return '📚';
+            return languageFlags[language.toLowerCase()] || '📚';
+        }
+        
+        async function loadClassDetails() {
+            try {
+                const result = await API.classes.get(classId);
+                
+                if (result.ok) {
+                    const cls = result.data;
+                    document.getElementById('className').textContent = cls.name;
+                    document.getElementById('classTeacher').textContent = `Nauczyciel: ${cls.teacherName}`;
+                    document.getElementById('classFlag').textContent = getLanguageFlag(cls.language);
+                    document.title = `${cls.name} - MemoRise`;
+                } else {
+                    document.getElementById('className').textContent = 'Nie znaleziono klasy';
+                }
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+        
+        async function loadDecks() {
+            const container = document.getElementById('decksList');
+            
+            try {
+                const result = await API.decks.listByClass(classId);
+                
+                if (result.ok && result.data.length > 0) {
+                    container.innerHTML = result.data.map(deck => `
+                        <div class="deck-card-large">
+                            <div class="deck-card-content">
+                                <h3>${escapeHtml(deck.title)}</h3>
+                                <p>${deck.description || 'Brak opisu'}</p>
+                                <div class="deck-meta">
+                                    <span class="level level-${deck.level}">${getLevelLabel(deck.level)}</span>
+                                    <span class="card-count">${deck.cardCount || 0} fiszek</span>
+                                </div>
+                            </div>
+                            <div class="deck-card-actions">
+                                <a href="/study?deckId=${deck.id}" class="btn-primary">Rozpocznij naukę</a>
+                            </div>
+                        </div>
+                    `).join('');
+                } else {
+                    container.innerHTML = '<p class="no-data">Brak zestawów w tej klasie</p>';
+                }
+            } catch (error) {
+                container.innerHTML = '<p class="error">Błąd ładowania zestawów</p>';
+            }
+        }
+        
+        async function loadTasks() {
+            try {
+                const result = await API.classes.tasks(classId);
+                
+                if (result.ok && result.data.length > 0) {
+                    const container = document.getElementById('tasksList');
+                    const section = document.getElementById('tasksSection');
+                    section.style.display = 'block';
+                    
+                    container.innerHTML = result.data.map(task => `
+                        <div class="task-card">
+                            <div class="task-info">
+                                <h3>${escapeHtml(task.title)}</h3>
+                                <p>${task.description || ''}</p>
+                            </div>
+                            ${task.dueDate ? `<span class="task-due">Termin: ${new Date(task.dueDate).toLocaleDateString('pl-PL')}</span>` : ''}
+                        </div>
+                    `).join('');
+                }
+            } catch (error) {
+                console.error('Error loading tasks:', error);
+            }
+        }
+        
+        function getLevelLabel(level) {
+            const labels = { 'beginner': 'Początkujący', 'intermediate': 'Średni', 'advanced': 'Zaawansowany' };
+            return labels[level] || level;
+        }
+        
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+    </script>
+</body>
+</html>

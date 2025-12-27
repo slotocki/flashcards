@@ -14,30 +14,45 @@
             <div class="error-message"><?= $messages ?></div>
         <?php endif; ?>
         
-        <form class="login-form" method="POST" action="/register">
+        <form class="register-form" method="POST" action="/register">
             <div class="input-group">
                 <label for="email">Email</label>
-                <input name="email" type="email" id="email" placeholder="Wpisz" required autocomplete="email">
+                <input name="email" type="email" id="email" placeholder="Wpisz" required autocomplete="email" maxlength="150">
             </div>
 
             <div class="input-group">
                 <label for="firstName">Imię</label>
-                <input name="firstName" type="text" id="firstName" placeholder="Wpisz" required autocomplete="given-name">
+                <input name="firstName" type="text" id="firstName" placeholder="Wpisz" required autocomplete="given-name" minlength="2" maxlength="100">
             </div>
 
             <div class="input-group">
                 <label for="lastName">Nazwisko</label>
-                <input name="lastName" type="text" id="lastName" placeholder="Wpisz" required autocomplete="family-name">
+                <input name="lastName" type="text" id="lastName" placeholder="Wpisz" required autocomplete="family-name" minlength="2" maxlength="100">
             </div>
             
             <div class="input-group">
                 <label for="password">Hasło</label>
-                <input name="password" type="password" id="password" placeholder="Wpisz" required autocomplete="new-password">
+                <input name="password" type="password" id="password" placeholder="Min. 8 znaków, wielka litera, cyfra" required autocomplete="new-password" minlength="8" maxlength="72">
+                <small class="password-hint">Min. 8 znaków, wielka i mała litera, cyfra</small>
             </div>
 
             <div class="input-group">
                 <label for="confirmPassword">Powtórz hasło</label>
-                <input name="confirmPassword" type="password" id="confirmPassword" placeholder="Wpisz" required autocomplete="new-password">
+                <input name="confirmPassword" type="password" id="confirmPassword" placeholder="Wpisz" required autocomplete="new-password" minlength="8" maxlength="72">
+            </div>
+
+            <div class="input-group role-selection">
+                <label>Jestem:</label>
+                <div class="role-options">
+                    <label class="role-option">
+                        <input type="radio" name="role" value="student" checked>
+                        <span>Uczniem</span>
+                    </label>
+                    <label class="role-option">
+                        <input type="radio" name="role" value="teacher">
+                        <span>Nauczycielem</span>
+                    </label>
+                </div>
             </div>
             
             <button type="submit" class="btn-login">Zarejestruj się</button>
@@ -45,5 +60,8 @@
         
         <a href="/login" class="register-link">Masz już konto? Zaloguj się</a>
     </div>
+    
+    <script src="/public/scripts/api.js"></script>
+    <script src="/public/scripts/auth.js"></script>
 </body>
 </html>

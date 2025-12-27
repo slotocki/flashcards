@@ -1,15 +1,107 @@
 <!DOCTYPE html>
 <html lang="pl">
 <head>
-	<meta charset="UTF-8">
-	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>404 - Nie znaleziono strony</title>
-	<link href="../styles/main.css" rel="stylesheet">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>404 - Nie znaleziono strony - MemoRise</title>
+    <link href="/public/styles/main.css" rel="stylesheet">
+    <style>
+        .error-page {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2rem;
+        }
+        
+        .error-code {
+            font-size: 8rem;
+            font-weight: 700;
+            margin: 0;
+            line-height: 1;
+            text-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+        }
+        
+        .error-title {
+            font-size: 1.5rem;
+            margin: 1rem 0 0.5rem;
+            opacity: 0.9;
+        }
+        
+        .error-message {
+            font-size: 1rem;
+            opacity: 0.8;
+            margin-bottom: 2rem;
+            max-width: 400px;
+        }
+        
+        .error-actions {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        
+        .error-actions a {
+            display: inline-block;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 500;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .btn-home {
+            background: white;
+            color: #667eea;
+        }
+        
+        .btn-home:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(255, 255, 255, 0.3);
+        }
+        
+        .btn-back {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        
+        .btn-back:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+        
+        .error-logo {
+            position: absolute;
+            top: 2rem;
+            left: 2rem;
+        }
+        
+        .error-logo img {
+            height: 40px;
+        }
+    </style>
 </head>
 <body>
-	<h1>404</h1>
-	<p>Nie znaleziono strony.</p>
-	<p><a href="/">Wróć na stronę główną</a></p>
+    <div class="error-page">
+        <a href="/dashboard" class="error-logo">
+            <img src="/public/images/logo.png" alt="MemoRise">
+        </a>
+        
+        <h1 class="error-code">404</h1>
+        <h2 class="error-title">Strona nie została znaleziona</h2>
+        <p class="error-message">
+            Przepraszamy, ale strona której szukasz nie istnieje lub została przeniesiona.
+        </p>
+        
+        <div class="error-actions">
+            <a href="/dashboard" class="btn-home">Strona główna</a>
+            <a href="javascript:history.back()" class="btn-back">← Wróć</a>
+        </div>
+    </div>
 </body>
 </html>

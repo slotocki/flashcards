@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tryb nauki - MemoRise</title>
+    <link href="/public/styles/main.css" rel="stylesheet">
+    <link href="/public/styles/study.css" rel="stylesheet">
+</head>
+<body>
+    <nav>
+        <div class="nav-brand">
+            <a href="/dashboard"><img src="/public/images/logo.png" alt="MemoRise Logo" class="logo"></a>
+        </div>
+        <ul>
+            <li><a href="/dashboard">Strona główna</a></li>
+            <li><a href="/community">Społeczność</a></li>
+            <li><a href="/progress">Twój progres</a></li>
+            <li><a href="/account">Twoje konto</a></li>
+            <li><a href="#" onclick="logout(); return false;">Wyloguj</a></li>
+        </ul>
+    </nav>
+
+    <div class="study-container">
+        <header class="study-header">
+            <a href="javascript:history.back()" class="back-btn">← Wróć</a>
+            <h1 class="deck-title">Nauka</h1>
+            <div class="deck-stats"></div>
+        </header>
+
+        <div class="progress-section">
+            <div class="progress-bar">
+                <div class="progress-bar-fill" style="width: 0%"></div>
+            </div>
+            <span class="progress-text">0/0 opanowanych</span>
+        </div>
+
+        <div class="flashcard-container">
+            <div class="loader" style="display: none;">Ładowanie...</div>
+            
+            <div class="flashcard" tabindex="0">
+                <div class="card-inner">
+                    <div class="card-front">
+                        <div class="card-content">
+                            <p class="card-text">Kliknij, aby załadować kartę</p>
+                        </div>
+                        <span class="card-progress status-new">Nowa</span>
+                    </div>
+                    <div class="card-back">
+                        <div class="card-content">
+                            <p class="card-text">Tył karty</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <p class="flip-hint">Kliknij kartę lub naciśnij spację, aby odwrócić</p>
+        </div>
+
+        <div class="study-controls">
+            <button id="dontKnowBtn" class="btn-answer btn-dont-know">
+                <span class="btn-icon">✕</span>
+                <span class="btn-label">Nie wiem</span>
+                <span class="btn-key">←</span>
+            </button>
+            <button id="flipBtn" class="btn-flip">
+                <span>Odwróć</span>
+            </button>
+            <button id="knowBtn" class="btn-answer btn-know">
+                <span class="btn-icon">✓</span>
+                <span class="btn-label">Wiem</span>
+                <span class="btn-key">→</span>
+            </button>
+        </div>
+
+        <div class="keyboard-hints">
+            <p>Skróty klawiszowe: <kbd>Spacja</kbd> odwróć | <kbd>←</kbd> nie wiem | <kbd>→</kbd> wiem</p>
+        </div>
+    </div>
+
+    <script src="/public/scripts/api.js"></script>
+    <script src="/public/scripts/auth.js"></script>
+    <script src="/public/scripts/study.js"></script>
+</body>
+</html>

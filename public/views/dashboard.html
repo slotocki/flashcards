@@ -4,20 +4,20 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard</title>
+    <title>Dashboard - MemoRise</title>
     <link href="/public/styles/main.css" rel="stylesheet">
-    
 </head>
 <body>
     <nav>
         <div class="nav-brand">
-            <img src="/public/images/logo.png" alt="MemoRise Logo" class="logo">
+            <a href="/dashboard"><img src="/public/images/logo.png" alt="MemoRise Logo" class="logo"></a>
         </div>
         <ul>
-            <li><a href="/dashboard">Strona główna</a></li>
+            <li><a href="/dashboard" class="active">Strona główna</a></li>
+            <li><a href="/community">Społeczność</a></li>
             <li><a href="/progress">Twój progres</a></li>
             <li><a href="/account">Twoje konto</a></li>
-            <li><a href="/logout">Wyloguj</a></li>
+            <li><a href="#" onclick="logout(); return false;">Wyloguj</a></li>
         </ul>
     </nav>
 
@@ -26,54 +26,69 @@
             <section class="class-selection">
                 <h2>Wybierz klasę:</h2>
                 <div class="class-list">
-                    <div class="class-item">
-                        <div class="class-info">
-                            <span class="flag">🇩🇪</span>
-                            <div>
-                                <h3>Klasa 4a - niemiecki</h3>
-                                <p class="teacher">mgr Joanna Woźniak</p>
-                            </div>
-                        </div>
-                        <button class="btn-primary">Wejdź</button>
-                    </div>
-                    <div class="class-item">
-                        <div class="class-info">
-                            <span class="flag">🇪🇸</span>
-                            <div>
-                                <h3>4a - esp</h3>
-                                <p class="teacher">mgr Jan Gwóźdź</p>
-                            </div>
-                        </div>
-                        <button class="btn-primary">Wejdź</button>
-                    </div>
+                    <!-- Klasy będą ładowane dynamicznie przez JavaScript -->
+                    <p class="loading">Ładowanie klas...</p>
                 </div>
                 <a href="#" class="add-class">dołącz do nowej klasy</a>
             </section>
 
             <section class="search-community">
-                <h2>Wyszukaj wśród społeczności</h2>
-                <div class="search-box">
-                    <input type="text" placeholder="Wpisz język">
-                    <button class="btn-clear">×</button>
-                </div>
-                <button class="btn-primary btn-search">Wyszukaj</button>
+                <h2>🌍 Wyszukaj wśród społeczności</h2>
+                <p>Odkryj publiczne zestawy fiszek stworzone przez innych użytkowników!</p>
+                <a href="/community" class="btn-primary" style="display: inline-block; margin-top: 1rem;">Przeglądaj społeczność</a>
             </section>
         </main>
 
         <aside>
-            <div class="flashcard-preview">
+            <div class="flashcard-preview" id="taskPreview" style="display: none;">
                 <div class="flashcard-header">
                     <span class="info-icon">ℹ</span>
-                    <h3>Zadanie z (Klasa 4a - niemiecki)</h3>
-                    <button class="close-btn">×</button>
+                    <h3 id="taskTitle">Zadanie</h3>
+                    <button class="close-btn" onclick="this.parentElement.parentElement.style.display='none'">×</button>
                 </div>
-                <p class="flashcard-question">Proszę rozwiązać die Tiere do poniedzialku</p>
-                <button class="btn-primary">Przejdź do klasy</button>
+                <p class="flashcard-question" id="taskDescription"></p>
+                <button class="btn-primary" id="taskGoBtn">Przejdź do klasy</button>
                 <p class="ignore-text">Ignoruj trwale</p>
             </div>
         </aside>
     </div>
 
-    <script src="/public/scripts/main.js" defer></script>
+    <!-- Modal dołączania do klasy -->
+    <div id="joinClassModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Dołącz do klasy</h2>
+                <button class="close-btn">&times;</button>
+            </div>
+            <form class="join-form">
+                <div class="input-group">
+                    <label for="joinCode">Kod dołączenia</label>
+                    <input type="text" name="joinCode" id="joinCode" placeholder="Wpisz 8-znakowy kod" maxlength="8" required>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn-secondary cancel-btn">Anuluj</button>
+                    <button type="submit" class="btn-primary">Dołącz</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Template dla elementu klasy -->
+    <template id="classItemTemplate">
+        <div class="class-item">
+            <div class="class-info">
+                <span class="flag">📚</span>
+                <div>
+                    <h3 class="class-name"></h3>
+                    <p class="teacher"></p>
+                </div>
+            </div>
+            <button class="btn-primary">Wejdź</button>
+        </div>
+    </template>
+
+    <script src="/public/scripts/api.js"></script>
+    <script src="/public/scripts/auth.js"></script>
+    <script src="/public/scripts/classes.js"></script>
 </body>
 </html>

@@ -12,53 +12,126 @@ class DashboardController extends AppController
     public function __construct()
     {
         $this->userRepository = new UserRepository();
-        $users = $this->userRepository->getUsers();
-        var_dump($users);
+    }
+    
+    /**
+     * Sprawdza czy użytkownik jest zalogowany
+     */
+    private function isAuthenticated(): bool
+    {
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+        return isset($_SESSION['user_id']);
+    }
+    
+    /**
+     * Zwraca rolę zalogowanego użytkownika
+     */
+    private function getUserRole(): ?string
+    {
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+        return $_SESSION['user_role'] ?? null;
+    }
+    
+    /**
+     * Wymusza zalogowanie - przekierowuje do /login jeśli nie zalogowany
+     */
+    private function requireAuth(): bool
+    {
+        if (!$this->isAuthenticated()) {
+            header('Location: /login');
+            exit();
+        }
+        return true;
+    }
+    
+    /**
+     * Strona główna - przekierowanie w zależności od stanu logowania i roli
+     */
+    public function index()
+    {
+        if (!$this->isAuthenticated()) {
+            header('Location: /login');
+            exit();
+        }
+        
+        $role = $this->getUserRole();
+        
+        // Przekieruj w zależności od roli
+        switch ($role) {
+            case 'admin':
+                $this->render('admin_panel');
+                break;
+            case 'teacher':
+                $this->render('teacher_dashboard');
+                break;
+            default:
+                $this->render('dashboard');
+        }
     }
 
     public function dashboard()
     {
+        $this->requireAuth();
         $this->render('dashboard');
     }
-
-    public function addFlashcard()
+    
+    public function study()
     {
-        if (!$this->isAuthenticated()) {
-            http_response_code(401);
-            return $this->json(['error' => 'Unauthorized']);
-        }
-
-        $contentType = isset($_SERVER["CONTENT_TYPE"]) ? trim($_SERVER["CONTENT_TYPE"]) : '';
-
-        if ($contentType === "application/json") {
-            $content = trim(file_get_contents("php://input"));
-            $decoded = json_decode($content, true);
-
-            $question = $decoded['question'] ?? '';
-            $answer = $decoded['answer'] ?? '';
-            $category = $decoded['category'] ?? '';
-
-            if (empty($question) || empty($answer)) {
-                http_response_code(400);
-                return $this->json(['error' => 'Question and answer are required']);
-            }
-
-            $flashcard = new Flashcard(
-                null,
-                $_SESSION['user_id'],
-                $question,
-                $answer,
-                $category
-            );
-
-            // TODO: Dodaj FlashcardRepository lub zapisz do Repository
-            return $this->json(['success' => true]);
-        }
+        $this->requireAuth();
+        $this->render('study');
     }
-
-    private function isAuthenticated(): bool
+    
+    public function progress()
     {
-        return isset($_SESSION['user_id']);
+        $this->requireAuth();
+        $this->render('progress');
+    }
+    
+    public function teacher()
+    {
+        $this->requireAuth();
+        $this->render('teacher_panel');
+    }
+    
+    public function joinClass()
+    {
+        $this->requireAuth();
+        $this->render('join_class');
+    }
+    
+    public function account()
+    {
+        $this->requireAuth();
+        $this->render('account');
+    }
+    
+    public function classView()
+    {
+        $this->requireAuth();
+        $this->render('class_view');
+    }
+    
+    public function admin()
+    {
+        $this->requireAuth();
+        
+        // Tylko admin ma dostęp
+        if ($this->getUserRole() !== 'admin') {
+            header('Location: /dashboard');
+            exit();
+        }
+        
+        $this->render('admin_panel');
+    }
+    
+    public function community()
+    {
+        $this->requireAuth();
+        $this->render('community');
     }
 
     private function json($data)

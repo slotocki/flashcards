@@ -289,3 +289,1614 @@ aside {
     width: auto;
     object-fit: contain;
 }
+
+/* ==================== MODALS ==================== */
+
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    padding: 1rem;
+}
+
+.modal-content {
+    background: white;
+    border-radius: 12px;
+    max-width: 500px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+}
+
+.modal-content.modal-small {
+    max-width: 400px;
+}
+
+.confirm-message {
+    padding: 0 1.5rem;
+    margin: 1rem 0;
+    color: #4b5563;
+    line-height: 1.6;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.modal-header h2 {
+    font-size: 1.25rem;
+    margin: 0;
+}
+
+.modal-header .close-btn {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: #6b7280;
+    line-height: 1;
+    padding: 0;
+}
+
+.modal-header .close-btn:hover {
+    color: #1f2937;
+}
+
+.modal form,
+.modal-body {
+    padding: 1.5rem;
+}
+
+.modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    margin-top: 1.5rem;
+}
+
+/* ==================== FORMS ==================== */
+
+.input-group {
+    margin-bottom: 1.5rem;
+}
+
+.input-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    color: #374151;
+}
+
+.input-group input,
+.input-group textarea,
+.input-group select {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 1rem;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.input-group input:focus,
+.input-group textarea:focus,
+.input-group select:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.15);
+}
+
+.input-group small {
+    display: block;
+    margin-top: 0.25rem;
+    color: #6b7280;
+    font-size: 0.85rem;
+}
+
+/* Form row for side-by-side inputs */
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+
+@media (max-width: 500px) {
+    .form-row {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ==================== BUTTONS ==================== */
+
+.btn-secondary {
+    background: #e5e7eb;
+    color: #374151;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.95rem;
+    font-weight: 500;
+    transition: background 0.2s;
+}
+
+.btn-secondary:hover {
+    background: #d1d5db;
+}
+
+.btn-sm {
+    padding: 0.5rem 1rem;
+    font-size: 0.85rem;
+}
+
+.btn-large {
+    padding: 1rem 2.5rem;
+    font-size: 1.1rem;
+}
+
+.btn-danger {
+    background: #ef4444;
+    color: white;
+}
+
+.btn-danger:hover {
+    background: #dc2626;
+}
+
+/* ==================== MESSAGES ==================== */
+
+.error-message {
+    background: #fef2f2;
+    color: #991b1b;
+    padding: 1rem;
+    border-radius: 6px;
+    margin-bottom: 1rem;
+    border: 1px solid #fecaca;
+}
+
+.success-message {
+    background: #f0fdf4;
+    color: #166534;
+    padding: 1rem;
+    border-radius: 6px;
+    margin-bottom: 1rem;
+    border: 1px solid #bbf7d0;
+}
+
+/* ==================== NAVIGATION ACTIVE STATE ==================== */
+
+nav a.active {
+    color: #667eea;
+    font-weight: 500;
+}
+
+/* ==================== CARDS & LISTS ==================== */
+
+.class-card,
+.deck-card,
+.task-item,
+.member-item {
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 1rem;
+    transition: box-shadow 0.2s;
+}
+
+.class-card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    cursor: pointer;
+}
+
+.deck-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.75rem;
+}
+
+.deck-info h4 {
+    margin-bottom: 0.25rem;
+}
+
+.deck-info p {
+    color: #6b7280;
+    font-size: 0.9rem;
+}
+
+.deck-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.level {
+    display: inline-block;
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    margin-right: 0.5rem;
+}
+
+.level-beginner {
+    background: #dbeafe;
+    color: #1d4ed8;
+}
+
+.level-intermediate {
+    background: #fef3c7;
+    color: #d97706;
+}
+
+.level-advanced {
+    background: #fee2e2;
+    color: #dc2626;
+}
+
+.card-count {
+    font-size: 0.85rem;
+    color: #6b7280;
+}
+
+/* ==================== TABS ==================== */
+
+.tabs {
+    display: flex;
+    gap: 0;
+    border-bottom: 2px solid #e5e7eb;
+    margin-bottom: 1.5rem;
+}
+
+.tab {
+    padding: 0.75rem 1.5rem;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 0.95rem;
+    color: #6b7280;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -2px;
+    transition: color 0.2s, border-color 0.2s;
+}
+
+.tab:hover {
+    color: #374151;
+}
+
+.tab.active {
+    color: #667eea;
+    border-bottom-color: #667eea;
+    font-weight: 500;
+}
+
+/* ==================== SECTION HEADERS ==================== */
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.section-header h2,
+.section-header h3 {
+    margin: 0;
+}
+
+/* ==================== TEACHER PANEL ==================== */
+
+.teacher-classes-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.class-card-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.5rem;
+}
+
+.class-card-header h3 {
+    font-size: 1rem;
+}
+
+.join-code {
+    font-size: 0.9rem;
+    color: #6b7280;
+}
+
+.join-code strong {
+    color: #667eea;
+    font-family: monospace;
+    font-size: 1rem;
+}
+
+/* ==================== CARDS MANAGER ==================== */
+
+.cards-manager {
+    padding: 1rem 0;
+}
+
+.manager-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.cards-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.card-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.75rem 1rem;
+    background: #f9fafb;
+    border-radius: 6px;
+}
+
+.card-front {
+    flex: 1;
+    font-weight: 500;
+}
+
+.separator {
+    color: #9ca3af;
+}
+
+.card-back {
+    flex: 1;
+    color: #6b7280;
+}
+
+/* ==================== MEMBER LIST ==================== */
+
+.members-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.member-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.member-name {
+    font-weight: 500;
+}
+
+.member-email {
+    color: #6b7280;
+    font-size: 0.9rem;
+}
+
+/* ==================== JOIN CLASS ==================== */
+
+.join-class-section {
+    max-width: 500px;
+    margin: 2rem auto;
+    text-align: center;
+}
+
+.join-class-section .description {
+    color: #6b7280;
+    margin-bottom: 2rem;
+}
+
+.join-class-form .input-group {
+    text-align: left;
+}
+
+.back-link {
+    display: inline-block;
+    margin-top: 2rem;
+    color: #6b7280;
+    text-decoration: none;
+}
+
+.back-link:hover {
+    color: #374151;
+}
+
+/* ==================== NO DATA STATES ==================== */
+
+.no-data {
+    text-align: center;
+    padding: 2rem;
+    color: #6b7280;
+}
+
+.loading {
+    text-align: center;
+    padding: 2rem;
+    color: #9ca3af;
+}
+
+.error {
+    color: #dc2626;
+}
+
+/* ==================== ROLE SELECTION ==================== */
+
+.role-selection {
+    display: flex;
+    gap: 1.5rem;
+    margin-top: 0.5rem;
+}
+
+.role-selection label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    font-weight: normal;
+}
+
+.role-selection input[type="radio"] {
+    width: auto;
+}
+
+/* ==================== DANGER BUTTON ==================== */
+
+.btn-danger {
+    background-color: #dc2626;
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: background-color 0.3s ease;
+}
+
+.btn-danger:hover {
+    background-color: #b91c1c;
+}
+
+.btn-danger.btn-sm {
+    padding: 0.4rem 0.8rem;
+    font-size: 0.85rem;
+}
+
+/* ==================== ADMIN PANEL ==================== */
+
+.admin-welcome {
+    text-align: center;
+    padding: 1.5rem;
+}
+
+.admin-welcome h1 {
+    color: #1f2937;
+    margin-bottom: 0.5rem;
+}
+
+.admin-welcome p {
+    color: #6b7280;
+}
+
+.admin-panel {
+    padding: 1rem;
+}
+
+.admin-tabs {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    border-bottom: 1px solid #e0e0e0;
+    padding-bottom: 1rem;
+}
+
+.admin-tabs .tab {
+    padding: 0.75rem 1.5rem;
+    background: #f3f4f6;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.admin-tabs .tab.active {
+    background-color: #2196F3;
+    color: white;
+}
+
+.admin-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1rem;
+}
+
+.admin-table th,
+.admin-table td {
+    padding: 1rem;
+    text-align: left;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.admin-table th {
+    background-color: #f9fafb;
+    font-weight: 600;
+    color: #374151;
+}
+
+.admin-table tr:hover {
+    background-color: #f9fafb;
+}
+
+.badge {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.badge-admin {
+    background-color: #fef3c7;
+    color: #92400e;
+}
+
+.badge-teacher {
+    background-color: #dbeafe;
+    color: #1e40af;
+}
+
+.badge-student {
+    background-color: #d1fae5;
+    color: #065f46;
+}
+
+.status-active {
+    color: #059669;
+    font-weight: 500;
+}
+
+.status-inactive {
+    color: #dc2626;
+    font-weight: 500;
+}
+
+/* ==================== ACCOUNT PAGE ==================== */
+
+.account-section {
+    max-width: 600px;
+}
+
+.account-section h3 {
+    margin-bottom: 1rem;
+    color: #374151;
+    border-bottom: 1px solid #e0e0e0;
+    padding-bottom: 0.5rem;
+}
+
+.account-info {
+    display: grid;
+    gap: 0.75rem;
+}
+
+.account-info p {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.account-info p strong {
+    min-width: 100px;
+    color: #6b7280;
+}
+
+/* ==================== TEACHER PANEL ==================== */
+
+.teacher-welcome {
+    text-align: center;
+    padding: 1.5rem;
+}
+
+.teacher-welcome h1 {
+    color: #1f2937;
+    margin-bottom: 0.5rem;
+}
+
+.teacher-welcome p {
+    color: #6b7280;
+}
+
+.teacher-panel {
+    padding: 1rem;
+}
+
+.teacher-classes-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.selected-class-section {
+    margin-top: 1rem;
+}
+
+.class-actions {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.member-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    margin-bottom: 0.5rem;
+}
+
+.member-item .member-name {
+    font-weight: 500;
+}
+
+.member-item .member-email {
+    color: #6b7280;
+    font-size: 0.9rem;
+}
+
+/* ==================== CLASS VIEW PAGE ==================== */
+
+.class-info {
+    padding: 1rem;
+}
+
+.class-decks-list,
+.class-tasks-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.deck-study-card,
+.task-card {
+    border: 1px solid #e0e0e0;
+    border-radius: 12px;
+    padding: 1.5rem;
+    transition: box-shadow 0.3s ease;
+}
+
+.deck-study-card:hover,
+.task-card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.deck-study-card h4,
+.task-card h4 {
+    margin-bottom: 0.5rem;
+    color: #1f2937;
+}
+
+.deck-study-card p,
+.task-card p {
+    color: #6b7280;
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+}
+
+.due-date {
+    font-size: 0.85rem;
+    color: #92400e;
+    background-color: #fef3c7;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+}
+
+/* ==================== DASHBOARD LAYOUT ==================== */
+
+/* Centering for dashboard sections */
+.class-selection,
+.search-community {
+    text-align: center;
+}
+
+.class-selection h2,
+.search-community h2 {
+    text-align: center;
+    margin-bottom: 1.5rem;
+}
+
+.class-selection .class-list {
+    text-align: left;
+}
+
+.class-selection .add-class {
+    display: inline-block;
+    margin-top: 1rem;
+}
+
+/* Community coming soon */
+.community-coming-soon {
+    text-align: center;
+    padding: 2rem;
+    background: linear-gradient(135deg, #f0f4ff 0%, #e8f0fe 100%);
+    border-radius: 12px;
+    color: #4b5563;
+    font-size: 1rem;
+    line-height: 1.6;
+}
+
+/* ==================== ACCOUNT PAGE LAYOUT ==================== */
+
+.account-container {
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+.account-container h1 {
+    text-align: center;
+    margin-bottom: 2rem;
+    color: #1f2937;
+}
+
+.account-sections {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+}
+
+.account-section {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    max-width: none;
+}
+
+.account-section h2 {
+    font-size: 1.25rem;
+    margin-bottom: 1.25rem;
+    color: #1f2937;
+    padding-bottom: 0.75rem;
+    border-bottom: 2px solid #e5e7eb;
+}
+
+.account-section .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+
+.account-section .input-group {
+    margin-bottom: 1rem;
+}
+
+.account-section .btn-primary {
+    width: 100%;
+    margin-top: 0.5rem;
+}
+
+.account-info .info-grid {
+    display: grid;
+    gap: 0.75rem;
+}
+
+.account-info .info-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.75rem;
+    background: #f9fafb;
+    border-radius: 6px;
+}
+
+.account-info .info-label {
+    color: #6b7280;
+    font-weight: 500;
+}
+
+.account-info .info-value {
+    color: #1f2937;
+    font-weight: 600;
+}
+
+/* ==================== CLASS VIEW PAGE FIX ==================== */
+
+.class-view-container {
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+.class-header {
+    margin-bottom: 2rem;
+}
+
+.class-header .back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #667eea;
+    text-decoration: none;
+    font-weight: 500;
+    padding: 0.5rem 1rem;
+    background: #f0f4ff;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+    transition: background 0.2s;
+}
+
+.class-header .back-link:hover {
+    background: #e0e7ff;
+}
+
+.class-title-section {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.class-flag {
+    font-size: 3rem;
+    line-height: 1;
+}
+
+.class-title-section h1 {
+    font-size: 1.75rem;
+    margin-bottom: 0.25rem;
+}
+
+.class-teacher {
+    color: #6b7280;
+}
+
+/* Deck cards for class view */
+.decks-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.5rem;
+}
+
+.deck-card-large {
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    transition: box-shadow 0.2s;
+}
+
+.deck-card-large:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.deck-card-content h3 {
+    font-size: 1.1rem;
+    margin-bottom: 0.5rem;
+    color: #1f2937;
+}
+
+.deck-card-content p {
+    color: #6b7280;
+    font-size: 0.9rem;
+    margin-bottom: 0.75rem;
+}
+
+.deck-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    align-items: center;
+    margin-top: auto;
+}
+
+.deck-card-actions {
+    margin-top: auto;
+    padding-top: 1rem;
+    border-top: 1px solid #e5e7eb;
+}
+
+.deck-card-actions .btn-primary {
+    width: 100%;
+    text-align: center;
+    text-decoration: none;
+    display: block;
+}
+
+/* ==================== ADMIN PANEL FIX ==================== */
+
+.admin-container {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.admin-container h1 {
+    margin-bottom: 1.5rem;
+}
+
+.admin-section {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.admin-table-container {
+    overflow-x: auto;
+}
+
+.search-filter {
+    min-width: 250px;
+}
+
+.search-filter input {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 0.95rem;
+}
+
+.search-filter input:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.15);
+}
+
+.modal-sm {
+    max-width: 400px;
+}
+
+/* ==================== TEACHER DASHBOARD FIX ==================== */
+
+.teacher-panel h1 {
+    margin-bottom: 1.5rem;
+}
+
+.teacher-panel .section-header {
+    margin-bottom: 1rem;
+}
+
+.decks-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.tasks-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+/* Fix class card flag size */
+.class-card .flag,
+.class-card-header .flag {
+    font-size: 2rem;
+}
+
+/* ==================== RESPONSIVE IMPROVEMENTS ==================== */
+
+@media (max-width: 768px) {
+    .account-sections {
+        grid-template-columns: 1fr;
+    }
+    
+    .account-section .form-row {
+        grid-template-columns: 1fr;
+    }
+    
+    .decks-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .class-title-section {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .class-flag {
+        font-size: 2.5rem;
+    }
+}
+
+/* ==================== COMMUNITY MODULE ==================== */
+
+.community-container {
+    max-width: 1200px;
+}
+
+.community-main {
+    width: 100%;
+}
+
+.community-search-section {
+    text-align: center;
+    padding: 2.5rem;
+}
+
+.community-search-section h1 {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+    color: #333;
+}
+
+.community-subtitle {
+    color: #666;
+    margin-bottom: 1.5rem;
+    font-size: 1.1rem;
+}
+
+.search-bar {
+    display: flex;
+    gap: 0.75rem;
+    max-width: 600px;
+    margin: 0 auto 1rem;
+}
+
+.search-bar input {
+    flex: 1;
+    padding: 0.875rem 1rem;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: border-color 0.2s;
+}
+
+.search-bar input:focus {
+    outline: none;
+    border-color: #667eea;
+}
+
+.sort-options {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.sort-options label {
+    color: #666;
+}
+
+.sort-options select {
+    padding: 0.5rem 1rem;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 0.95rem;
+    cursor: pointer;
+}
+
+.community-section {
+    margin-top: 1.5rem;
+}
+
+.community-section h2 {
+    margin-bottom: 1.25rem;
+}
+
+.subscribed-section .subscribed-decks-list {
+    display: flex;
+    gap: 1rem;
+    overflow-x: auto;
+    padding-bottom: 0.5rem;
+}
+
+.decks-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.25rem;
+}
+
+/* Deck Card */
+.deck-card {
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    border: 1px solid #eee;
+}
+
+.deck-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+}
+
+.deck-card-image {
+    position: relative;
+    height: 140px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    overflow: hidden;
+}
+
+.deck-card-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.subscribed-badge {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: #4CAF50;
+    color: white;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.deck-card-content {
+    padding: 1rem;
+}
+
+.deck-card-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: #333;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.deck-card-meta {
+    display: flex;
+    gap: 1rem;
+    font-size: 0.85rem;
+    color: #666;
+    margin-bottom: 0.75rem;
+}
+
+.deck-card-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.deck-rating {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.deck-rating .stars {
+    color: #FFC107;
+}
+
+.rating-count {
+    font-size: 0.8rem;
+    color: #999;
+}
+
+.deck-views {
+    font-size: 0.8rem;
+    color: #999;
+}
+
+/* Level badges */
+.level-badge {
+    font-size: 0.75rem;
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+    font-weight: 500;
+}
+
+.level-beginner {
+    background: #e8f5e9;
+    color: #2e7d32;
+}
+
+.level-intermediate {
+    background: #fff3e0;
+    color: #ef6c00;
+}
+
+.level-advanced {
+    background: #fce4ec;
+    color: #c2185b;
+}
+
+/* Pagination */
+.pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1rem;
+    margin-top: 1.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid #eee;
+}
+
+#pageInfo {
+    color: #666;
+    font-size: 0.95rem;
+}
+
+/* Modal Large */
+.modal-large {
+    max-width: 700px;
+    width: 95%;
+}
+
+.deck-detail-info {
+    display: flex;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.deck-detail-image {
+    width: 180px;
+    height: 140px;
+    object-fit: cover;
+    border-radius: 8px;
+    flex-shrink: 0;
+}
+
+.deck-detail-meta {
+    flex: 1;
+}
+
+.deck-detail-meta p {
+    margin-bottom: 0.5rem;
+    color: #555;
+}
+
+.deck-description {
+    margin-top: 0.75rem;
+    color: #666;
+    font-style: italic;
+}
+
+.deck-rating-section {
+    padding: 1rem;
+    background: #f9f9f9;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+}
+
+.deck-rating-section h3 {
+    margin-bottom: 0.75rem;
+    font-size: 1rem;
+}
+
+.stars-display {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.average-rating {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #333;
+}
+
+.stars-display .stars {
+    font-size: 1.25rem;
+    color: #FFC107;
+}
+
+.ratings-count {
+    color: #999;
+    font-size: 0.9rem;
+}
+
+.user-rating {
+    margin-top: 1rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid #e0e0e0;
+}
+
+.user-rating p {
+    margin-bottom: 0.5rem;
+    color: #666;
+    font-size: 0.9rem;
+}
+
+.star-rating {
+    display: flex;
+    gap: 0.25rem;
+}
+
+.star-rating span {
+    font-size: 1.75rem;
+    cursor: pointer;
+    color: #ddd;
+    transition: color 0.15s;
+}
+
+.star-rating span:hover,
+.star-rating span.active {
+    color: #FFC107;
+}
+
+.deck-share-section {
+    margin-bottom: 1rem;
+}
+
+.deck-share-section h3 {
+    margin-bottom: 0.5rem;
+    font-size: 1rem;
+}
+
+.share-link {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.share-link input {
+    flex: 1;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    background: #f9f9f9;
+}
+
+.deck-cards-preview h3 {
+    margin-bottom: 0.75rem;
+    font-size: 1rem;
+}
+
+.cards-preview-list {
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.card-preview-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem;
+    border-bottom: 1px solid #f0f0f0;
+    font-size: 0.9rem;
+}
+
+.card-preview-item:last-child {
+    border-bottom: none;
+}
+
+.card-number {
+    color: #999;
+    min-width: 25px;
+}
+
+.card-front {
+    color: #333;
+    font-weight: 500;
+}
+
+.card-arrow {
+    color: #ccc;
+}
+
+.card-back {
+    color: #666;
+}
+
+.more-cards {
+    text-align: center;
+    color: #999;
+    font-size: 0.85rem;
+    padding: 0.5rem;
+    font-style: italic;
+}
+
+.modal-footer {
+    display: flex;
+    gap: 0.75rem;
+    justify-content: flex-end;
+    padding: 1rem 1.5rem;
+    border-top: 1px solid #eee;
+    background: #fafafa;
+}
+
+#subscribeBtn.subscribed {
+    background: #666;
+}
+
+/* Toast notifications */
+.toast {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%) translateY(100px);
+    background: #333;
+    color: white;
+    padding: 0.875rem 1.5rem;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    z-index: 10000;
+    opacity: 0;
+    transition: transform 0.3s, opacity 0.3s;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.toast.show {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+}
+
+.toast-success {
+    background: #4CAF50;
+}
+
+.toast-error {
+    background: #f44336;
+}
+
+/* Subscribed decks horizontal scroll */
+.subscribed-decks-list .deck-card {
+    min-width: 280px;
+    flex-shrink: 0;
+}
+
+/* No data messages */
+.no-data {
+    color: #999;
+    text-align: center;
+    padding: 2rem;
+    font-style: italic;
+}
+
+.loading {
+    color: #666;
+    text-align: center;
+    padding: 2rem;
+}
+
+.error {
+    color: #f44336;
+    text-align: center;
+    padding: 1rem;
+}
+
+/* Community responsive */
+@media (max-width: 768px) {
+    .community-search-section h1 {
+        font-size: 1.5rem;
+    }
+    
+    .search-bar {
+        flex-direction: column;
+    }
+    
+    .deck-detail-info {
+        flex-direction: column;
+    }
+    
+    .deck-detail-image {
+        width: 100%;
+        height: 180px;
+    }
+    
+    .decks-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .modal-footer {
+        flex-direction: column;
+    }
+}
+
+/* ==================== TEACHER PANEL ENHANCEMENTS ==================== */
+
+.public-badge {
+    display: inline-block;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    font-size: 0.7rem;
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+    margin-left: 0.5rem;
+    font-weight: 500;
+    vertical-align: middle;
+}
+
+.rating-info {
+    color: #FFC107;
+    font-size: 0.85rem;
+    margin-left: 0.5rem;
+}
+
+.checkbox-group {
+    margin-top: 0.5rem;
+}
+
+.checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    font-weight: normal;
+}
+
+.checkbox-label input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+}
+
+.input-hint {
+    display: block;
+    font-size: 0.8rem;
+    color: #888;
+    margin-top: 0.25rem;
+}
+
+.btn-danger {
+    background: #f44336;
+    color: white;
+    border: none;
+    padding: 0.4rem 0.75rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.85rem;
+}
+
+.btn-danger:hover {
+    background: #d32f2f;
+}
+
+.deck-card .deck-actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.deck-card .deck-info h4 {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+}
+
+/* Fix deck card in teacher panel */
+.deck-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 1rem;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    margin-bottom: 0.75rem;
+    background: white;
+}
+
+.deck-card .deck-info {
+    flex: 1;
+}
+
+.deck-card .deck-info h4 {
+    margin-bottom: 0.5rem;
+    color: #333;
+}
+
+.deck-card .deck-info p {
+    color: #666;
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+}

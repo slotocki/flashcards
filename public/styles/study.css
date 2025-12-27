@@ -1,0 +1,379 @@
+/**
+ * Study view styles
+ */
+
+.study-container {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 1rem;
+}
+
+.study-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 800px;
+    margin: 0 auto 1rem;
+    color: white;
+}
+
+.study-header .back-btn {
+    color: white;
+    text-decoration: none;
+    opacity: 0.8;
+    transition: opacity 0.2s;
+}
+
+.study-header .back-btn:hover {
+    opacity: 1;
+}
+
+.deck-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+}
+
+/* Progress bar */
+.progress-section {
+    max-width: 600px;
+    margin: 0 auto 2rem;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.progress-bar {
+    flex: 1;
+    height: 8px;
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.progress-bar-fill {
+    height: 100%;
+    background: #4ade80;
+    border-radius: 4px;
+    transition: width 0.3s ease;
+}
+
+.progress-text {
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 0.9rem;
+}
+
+/* Flashcard */
+.flashcard-container {
+    max-width: 500px;
+    margin: 0 auto;
+    perspective: 1000px;
+}
+
+.flashcard {
+    position: relative;
+    width: 100%;
+    height: 300px;
+    cursor: pointer;
+    transform-style: preserve-3d;
+    transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    outline: none;
+}
+
+.flashcard.flipped {
+    transform: rotateY(180deg);
+}
+
+.card-inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    transform-style: preserve-3d;
+}
+
+.card-front,
+.card-back {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    backface-visibility: hidden;
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 2rem;
+}
+
+.card-back {
+    transform: rotateY(180deg);
+    background: linear-gradient(145deg, #f0f9ff 0%, #e0f2fe 100%);
+}
+
+.card-content {
+    text-align: center;
+    width: 100%;
+}
+
+.card-text {
+    font-size: 1.8rem;
+    font-weight: 500;
+    color: #1f2937;
+    line-height: 1.4;
+    word-wrap: break-word;
+}
+
+.card-image {
+    max-width: 80%;
+    max-height: 150px;
+    object-fit: contain;
+    margin-bottom: 1rem;
+    border-radius: 8px;
+}
+
+.card-progress {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    padding: 0.25rem 0.75rem;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.status-new {
+    background: #dbeafe;
+    color: #1d4ed8;
+}
+
+.status-learning {
+    background: #fef3c7;
+    color: #d97706;
+}
+
+.status-known {
+    background: #d1fae5;
+    color: #059669;
+}
+
+.flip-hint {
+    text-align: center;
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 0.9rem;
+    margin-top: 1rem;
+}
+
+/* Loader */
+.loader {
+    text-align: center;
+    color: white;
+    padding: 3rem;
+    font-size: 1.2rem;
+}
+
+/* Controls */
+.study-controls {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1rem;
+    margin-top: 2rem;
+    max-width: 500px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.btn-answer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 1rem 2rem;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: transform 0.2s, box-shadow 0.2s;
+    min-width: 120px;
+}
+
+.btn-answer:hover {
+    transform: translateY(-2px);
+}
+
+.btn-answer:active {
+    transform: translateY(0);
+}
+
+.btn-know {
+    background: #22c55e;
+    color: white;
+    box-shadow: 0 4px 15px rgba(34, 197, 94, 0.4);
+}
+
+.btn-know:hover {
+    background: #16a34a;
+}
+
+.btn-dont-know {
+    background: #ef4444;
+    color: white;
+    box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4);
+}
+
+.btn-dont-know:hover {
+    background: #dc2626;
+}
+
+.btn-icon {
+    font-size: 1.5rem;
+    font-weight: bold;
+}
+
+.btn-label {
+    font-weight: 600;
+}
+
+.btn-key {
+    font-size: 0.75rem;
+    opacity: 0.7;
+}
+
+.btn-flip {
+    padding: 1rem 1.5rem;
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background 0.2s;
+}
+
+.btn-flip:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+/* Keyboard hints */
+.keyboard-hints {
+    text-align: center;
+    margin-top: 2rem;
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 0.85rem;
+}
+
+.keyboard-hints kbd {
+    display: inline-block;
+    padding: 0.2rem 0.5rem;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 4px;
+    font-family: inherit;
+    margin: 0 0.2rem;
+}
+
+/* Study complete */
+.study-complete {
+    text-align: center;
+    color: white;
+    padding: 3rem;
+}
+
+.study-complete h2 {
+    font-size: 2rem;
+    margin-bottom: 1rem;
+}
+
+.study-complete .stats {
+    font-size: 1.2rem;
+    margin-bottom: 2rem;
+    opacity: 0.9;
+}
+
+.study-complete .btn-primary {
+    display: inline-block;
+    padding: 1rem 2rem;
+    background: white;
+    color: #667eea;
+    text-decoration: none;
+    border-radius: 8px;
+    font-weight: 600;
+}
+
+/* Completed message */
+.completed-message {
+    text-align: center;
+    background: white;
+    padding: 3rem;
+    border-radius: 16px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+    max-width: 500px;
+    margin: 2rem auto;
+}
+
+.completed-message h2 {
+    font-size: 2rem;
+    color: #1f2937;
+    margin-bottom: 1rem;
+}
+
+.completed-message p {
+    color: #6b7280;
+    font-size: 1.1rem;
+    margin-bottom: 2rem;
+}
+
+.completed-message .btn-primary {
+    background: #667eea;
+    color: white;
+    border: none;
+    padding: 1rem 2rem;
+    border-radius: 8px;
+    font-size: 1rem;
+    cursor: pointer;
+    margin-right: 1rem;
+}
+
+.completed-message .btn-secondary {
+    background: #e5e7eb;
+    color: #374151;
+    border: none;
+    padding: 1rem 2rem;
+    border-radius: 8px;
+    font-size: 1rem;
+    cursor: pointer;
+}
+
+/* Progress text styling */
+.progress-text {
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 0.9rem;
+    white-space: nowrap;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+    .flashcard {
+        height: 250px;
+    }
+    
+    .card-text {
+        font-size: 1.4rem;
+    }
+    
+    .study-controls {
+        flex-wrap: wrap;
+    }
+    
+    .btn-answer {
+        min-width: 100px;
+        padding: 0.75rem 1.5rem;
+    }
+    
+    .btn-flip {
+        order: -1;
+        width: 100%;
+    }
+}

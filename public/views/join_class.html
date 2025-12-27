@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dołącz do klasy - MemoRise</title>
+    <link href="/public/styles/main.css" rel="stylesheet">
+</head>
+<body>
+    <nav>
+        <div class="nav-brand">
+            <img src="/public/images/logo.png" alt="MemoRise Logo" class="logo">
+        </div>
+        <ul>
+            <li><a href="/dashboard">Strona główna</a></li>
+            <li><a href="/progress">Twój progres</a></li>
+            <li><a href="/account">Twoje konto</a></li>
+            <li><a href="#" onclick="logout(); return false;">Wyloguj</a></li>
+        </ul>
+    </nav>
+
+    <div class="container">
+        <main>
+            <section class="join-class-section">
+                <h1>Dołącz do klasy</h1>
+                <p class="description">Wpisz kod otrzymany od nauczyciela, aby dołączyć do klasy.</p>
+                
+                <div class="error-message" id="errorMessage" style="display: none;"></div>
+                <div class="success-message" id="successMessage" style="display: none;"></div>
+                
+                <form id="joinClassForm" class="join-class-form">
+                    <div class="input-group">
+                        <label for="joinCode">Kod dołączenia</label>
+                        <input 
+                            type="text" 
+                            id="joinCode" 
+                            name="joinCode" 
+                            placeholder="np. ABC12345" 
+                            maxlength="8" 
+                            pattern="[A-Za-z0-9]{8}"
+                            required
+                            style="text-transform: uppercase; font-size: 1.5rem; text-align: center; letter-spacing: 0.3rem;"
+                        >
+                        <small>Kod składa się z 8 znaków (litery i cyfry)</small>
+                    </div>
+                    
+                    <button type="submit" class="btn-primary btn-large">Dołącz do klasy</button>
+                </form>
+                
+                <a href="/dashboard" class="back-link">← Wróć do dashboard</a>
+            </section>
+        </main>
+    </div>
+
+    <script src="/public/scripts/api.js"></script>
+    <script src="/public/scripts/auth.js"></script>
+    <script>
+        document.getElementById('joinClassForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const code = document.getElementById('joinCode').value.trim().toUpperCase();
+            const errorEl = document.getElementById('errorMessage');
+            const successEl = document.getElementById('successMessage');
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            
+            errorEl.style.display = 'none';
+            successEl.style.display = 'none';
+            
+            if (code.length !== 8) {
+                errorEl.textContent = 'Kod musi mieć 8 znaków';
+                errorEl.style.display = 'block';
+                return;
+            }
+            
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Dołączanie...';
+            
+            try {
+                const result = await API.classes.join(code);
+                
+                if (result.ok) {
+                    successEl.textContent = `Dołączono do klasy: ${result.data.class.name}!`;
+                    successEl.style.display = 'block';
+                    
+                    setTimeout(() => {
+                        window.location.href = '/dashboard';
+                    }, 1500);
+                } else {
+                    errorEl.textContent = result.error?.message || 'Nie udało się dołączyć do klasy';
+                    errorEl.style.display = 'block';
+                }
+            } catch (error) {
+                console.error('Join error:', error);
+                errorEl.textContent = 'Wystąpił błąd. Spróbuj ponownie.';
+                errorEl.style.display = 'block';
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Dołącz do klasy';
+            }
+        });
+        
+        // Auto-uppercase
+        document.getElementById('joinCode').addEventListener('input', function() {
+            this.value = this.value.toUpperCase();
+        });
+    </script>
+</body>
+</html>

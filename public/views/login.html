@@ -13,16 +13,20 @@
         <?php if(isset($messages)): ?>
             <div class="error-message"><?= $messages ?></div>
         <?php endif; ?>
+
+        <?php if(isset($_GET['registered'])): ?>
+            <div class="success-message">Rejestracja zakończona pomyślnie! Możesz się teraz zalogować.</div>
+        <?php endif; ?>
         
         <form class="login-form" method="POST" action="/login">
             <div class="input-group">
                 <label for="email">Email</label>
-                <input name="email" type="email" id="email" placeholder="Wpisz" required autocomplete="email">
+                <input name="email" type="email" id="email" placeholder="Wpisz" required autocomplete="email" maxlength="150">
             </div>
             
             <div class="input-group">
                 <label for="password">Hasło</label>
-                <input name="password" type="password" id="password" placeholder="Wpisz" required autocomplete="current-password">
+                <input name="password" type="password" id="password" placeholder="Wpisz" required autocomplete="current-password" maxlength="72">
             </div>
             
             <button type="submit" class="btn-login">Zaloguj</button>
@@ -32,5 +36,8 @@
         
         <a href="/register" class="register-link">Rejestracja</a>
     </div>
+    
+    <script src="/public/scripts/api.js"></script>
+    <script src="/public/scripts/auth.js"></script>
 </body>
 </html>

@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel nauczyciela - MemoRise</title>
+    <link href="/public/styles/main.css" rel="stylesheet">
+</head>
+<body>
+    <nav>
+        <div class="nav-brand">
+            <a href="/dashboard"><img src="/public/images/logo.png" alt="MemoRise Logo" class="logo"></a>
+        </div>
+        <ul>
+            <li><a href="/dashboard" class="active">Strona główna</a></li>
+            <li><a href="/teacher">Panel nauczyciela</a></li>
+            <li><a href="/account">Twoje konto</a></li>
+            <li><a href="#" onclick="logout(); return false;">Wyloguj</a></li>
+        </ul>
+    </nav>
+
+    <div class="container">
+        <main>
+            <section class="teacher-welcome">
+                <h1>Panel nauczyciela</h1>
+                <p>Witaj! Zarządzaj swoimi klasami, zestawami fiszek i uczniami.</p>
+            </section>
+            
+            <section class="teacher-panel">
+                <div class="section-header">
+                    <h2>Twoje klasy</h2>
+                    <button class="btn-primary" onclick="showCreateClassModal()">+ Utwórz klasę</button>
+                </div>
+                
+                <div class="teacher-classes-list" id="teacherClasses">
+                    <p class="loading">Ładowanie klas...</p>
+                </div>
+            </section>
+
+            <section class="selected-class-section" id="selectedClassSection" style="display: none;">
+                <div class="section-header">
+                    <h2 id="selectedClassName">Wybrana klasa</h2>
+                    <div class="class-actions">
+                        <span class="join-code" id="classJoinCode">Kod: </span>
+                        <button class="btn-danger btn-sm" onclick="deleteSelectedClass()">Usuń klasę</button>
+                    </div>
+                </div>
+                
+                <div class="tabs">
+                    <button class="tab active" data-tab="decks">Zestawy</button>
+                    <button class="tab" data-tab="tasks">Zadania</button>
+                    <button class="tab" data-tab="members">Uczniowie</button>
+                </div>
+                
+                <div class="tab-content" id="decksTab">
+                    <div class="section-header">
+                        <h3>Zestawy fiszek</h3>
+                        <button class="btn-primary btn-sm" onclick="showCreateDeckModal()">+ Dodaj zestaw</button>
+                    </div>
+                    <div id="decksList" class="decks-list"></div>
+                </div>
+                
+                <div class="tab-content" id="tasksTab" style="display: none;">
+                    <div class="section-header">
+                        <h3>Zadania</h3>
+                        <button class="btn-primary btn-sm" onclick="showCreateTaskModal()">+ Dodaj zadanie</button>
+                    </div>
+                    <div id="tasksList" class="tasks-list"></div>
+                </div>
+                
+                <div class="tab-content" id="membersTab" style="display: none;">
+                    <h3>Uczniowie w klasie</h3>
+                    <div id="membersList" class="members-list"></div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Modal tworzenia klasy -->
+    <div id="createClassModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Utwórz nową klasę</h2>
+                <button class="close-btn" onclick="closeModal('createClassModal')">&times;</button>
+            </div>
+            <form id="createClassForm">
+                <div class="input-group">
+                    <label for="className">Nazwa klasy</label>
+                    <input type="text" id="className" name="name" required maxlength="200">
+                </div>
+                <div class="input-group">
+                    <label for="classDescription">Opis (opcjonalnie)</label>
+                    <textarea id="classDescription" name="description" rows="3"></textarea>
+                </div>
+                <div class="input-group">
+                    <label for="classLanguage">Język</label>
+                    <select id="classLanguage" name="language">
+                        <option value="">-- Wybierz --</option>
+                        <option value="de">Niemiecki 🇩🇪</option>
+                        <option value="en">Angielski 🇬🇧</option>
+                        <option value="es">Hiszpański 🇪🇸</option>
+                        <option value="fr">Francuski 🇫🇷</option>
+                        <option value="it">Włoski 🇮🇹</option>
+                        <option value="ru">Rosyjski 🇷🇺</option>
+                    </select>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn-secondary" onclick="closeModal('createClassModal')">Anuluj</button>
+                    <button type="submit" class="btn-primary">Utwórz</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal tworzenia decku -->
+    <div id="createDeckModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Dodaj nowy zestaw</h2>
+                <button class="close-btn" onclick="closeModal('createDeckModal')">&times;</button>
+            </div>
+            <form id="createDeckForm">
+                <div class="input-group">
+                    <label for="deckTitle">Tytuł zestawu</label>
+                    <input type="text" id="deckTitle" name="title" required maxlength="200">
+                </div>
+                <div class="input-group">
+                    <label for="deckDescription">Opis (opcjonalnie)</label>
+                    <textarea id="deckDescription" name="description" rows="3"></textarea>
+                </div>
+                <div class="input-group">
+                    <label for="deckLevel">Poziom</label>
+                    <select id="deckLevel" name="level">
+                        <option value="beginner">Początkujący</option>
+                        <option value="intermediate">Średniozaawansowany</option>
+                        <option value="advanced">Zaawansowany</option>
+                    </select>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn-secondary" onclick="closeModal('createDeckModal')">Anuluj</button>
+                    <button type="submit" class="btn-primary">Dodaj</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal dodawania fiszki -->
+    <div id="createCardModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Dodaj fiszkę</h2>
+                <button class="close-btn" onclick="closeModal('createCardModal')">&times;</button>
+            </div>
+            <form id="createCardForm">
+                <div class="input-group">
+                    <label for="cardFront">Przód (pytanie/słowo)</label>
+                    <textarea id="cardFront" name="front" required rows="2"></textarea>
+                </div>
+                <div class="input-group">
+                    <label for="cardBack">Tył (odpowiedź/tłumaczenie)</label>
+                    <textarea id="cardBack" name="back" required rows="2"></textarea>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn-secondary" onclick="closeModal('createCardModal')">Anuluj</button>
+                    <button type="submit" class="btn-primary">Dodaj</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="/public/scripts/api.js"></script>
+    <script src="/public/scripts/auth.js"></script>
+    <script src="/public/scripts/teacher.js"></script>
+</body>
+</html>
