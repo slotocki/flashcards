@@ -61,15 +61,18 @@ function renderProgress(data) {
         </section>
     `;
     
+    // Sortuj zestawy od najmniej ukończonych (rosnąco wg procentu)
+    const sortedDecks = [...data.byDeck].sort((a, b) => a.progress - b.progress);
+    
     // Progres po deckach
     let decksHtml = '<section class="decks-progress"><h2>Progres w zestawach</h2>';
     
-    if (data.byDeck.length === 0) {
+    if (sortedDecks.length === 0) {
         decksHtml += '<p class="no-data">Nie masz jeszcze żadnego progresu. Rozpocznij naukę!</p>';
     } else {
         decksHtml += '<div class="deck-progress-list">';
         
-        data.byDeck.forEach(deck => {
+        sortedDecks.forEach(deck => {
             decksHtml += `
                 <div class="deck-progress-item">
                     <div class="deck-progress-header">
@@ -109,11 +112,4 @@ function startStudy(deckId) {
     window.location.href = `/study?deckId=${deckId}`;
 }
 
-/**
- * Escape HTML
- */
-function escapeHtml(text) {
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
-}
+// escapeHtml() - używamy z shared.js

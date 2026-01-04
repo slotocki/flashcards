@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 150">
+  <rect fill="#f0f0f0" width="200" height="150" rx="8"/>
+  <rect fill="#e0e0e0" x="30" y="30" width="140" height="90" rx="4"/>
+  <rect fill="#d0d0d0" x="40" y="40" width="120" height="70" rx="2"/>
+  <text x="100" y="82" font-family="Arial, sans-serif" font-size="32" fill="#999" text-anchor="middle">📚</text>
+</svg>

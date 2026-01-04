@@ -19,7 +19,7 @@ async function initClasses() {
         await loadClasses();
     }
     
-    // Obsługa linku "dołącz do nowej klasy"
+    // Obsługa linku "dołącz do nowej klasie"
     if (addClassLink) {
         addClassLink.addEventListener('click', (e) => {
             e.preventDefault();
@@ -87,7 +87,7 @@ function renderClasses(classes) {
  */
 function createClassElement(classData, template) {
     let element;
-    
+
     if (template) {
         element = template.content.cloneNode(true).firstElementChild;
     } else {
@@ -95,7 +95,7 @@ function createClassElement(classData, template) {
         element.className = 'class-item';
         element.innerHTML = `
             <div class="class-info">
-                <span class="flag">${getLanguageFlag(classData.language)}</span>
+                <img class="flag" src="${getLanguageFlagUrl(classData.language)}" alt="${classData.language || 'unknown'}">
                 <div>
                     <h3 class="class-name"></h3>
                     <p class="class-language"></p>
@@ -105,97 +105,29 @@ function createClassElement(classData, template) {
             <button class="btn-primary">Wejdź</button>
         `;
     }
-    
+
     // Wypełnij dane
     const nameEl = element.querySelector('.class-name, h3');
     const teacherEl = element.querySelector('.teacher');
-    const flagEl = element.querySelector('.flag');
     const langEl = element.querySelector('.class-language');
     const button = element.querySelector('button');
-    
+
     if (nameEl) nameEl.textContent = classData.name;
     if (teacherEl) teacherEl.textContent = classData.teacherName || '';
-    if (flagEl) flagEl.textContent = getLanguageFlag(classData.language);
     if (langEl) langEl.textContent = getLanguageName(classData.language);
-    
+
     if (button) {
         button.addEventListener('click', () => {
             window.location.href = `/class?id=${classData.id}`;
         });
     }
-    
+
     element.dataset.classId = classData.id;
-    
+
     return element;
 }
 
-/**
- * Zwraca flagę dla języka (emoji)
- */
-function getLanguageFlag(language) {
-    if (!language) return '📚';
-    const lang = language.toLowerCase();
-    const flags = {
-        'de': '🇩🇪',
-        'en': '🇬🇧',
-        'es': '🇪🇸',
-        'fr': '🇫🇷',
-        'it': '🇮🇹',
-        'pl': '🇵🇱',
-        'ru': '🇷🇺',
-        'ja': '🇯🇵',
-        'zh': '🇨🇳',
-        'pt': '🇵🇹',
-        'nl': '🇳🇱',
-        'sv': '�🇪',
-        'no': '�🇳🇴',
-        'da': '🇩🇰',
-        'fi': '🇫🇮',
-        'cs': '🇨🇿',
-        'sk': '🇸🇰',
-        'uk': '🇺🇦',
-        'el': '🇬🇷',
-        'tr': '🇹🇷',
-        'ar': '🇸🇦',
-        'ko': '🇰🇷',
-        'hi': '🇮🇳'
-    };
-    return flags[lang] || '📚';
-}
-
-/**
- * Zwraca pełną nazwę języka
- */
-function getLanguageName(language) {
-    if (!language) return '';
-    const lang = language.toLowerCase();
-    const names = {
-        'de': 'Niemiecki',
-        'en': 'Angielski',
-        'es': 'Hiszpański',
-        'fr': 'Francuski',
-        'it': 'Włoski',
-        'pl': 'Polski',
-        'ru': 'Rosyjski',
-        'ja': 'Japoński',
-        'zh': 'Chiński',
-        'pt': 'Portugalski',
-        'nl': 'Niderlandzki',
-        'sv': 'Szwedzki',
-        'no': 'Norweski',
-        'da': 'Duński',
-        'fi': 'Fiński',
-        'cs': 'Czeski',
-        'sk': 'Słowacki',
-        'uk': 'Ukraiński',
-        'el': 'Grecki',
-        'tr': 'Turecki',
-        'ar': 'Arabski',
-        'ko': 'Koreański',
-        'hi': 'Hindi'
-    };
-    return names[lang] || language.toUpperCase();
-}
+// getLanguageFlagUrl() i getLanguageName() - używamy z shared.js
 
 /**
  * Pokazuje modal dołączania do klasy

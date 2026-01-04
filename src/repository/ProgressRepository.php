@@ -164,21 +164,40 @@ class ProgressRepository extends Repository
             SELECT 
                 d.id as deck_id,
                 d.title as deck_title,
-                cl.name as class_name,
+                COALESCE(cl.name, \'Brak klasy\') as class_name,
                 COUNT(c.id) as total_cards,
                 COUNT(CASE WHEN p.status = \'known\' THEN 1 END) as known_cards,
                 COUNT(CASE WHEN p.status = \'learning\' THEN 1 END) as learning_cards
             FROM decks d
-            JOIN classes cl ON d.class_id = cl.id
-            JOIN class_members cm ON cl.id = cm.class_id AND cm.student_id = :user_id
+            LEFT JOIN class_decks cd ON d.id = cd.deck_id
+            LEFT JOIN classes cl ON cd.class_id = cl.id
+            LEFT JOIN class_members cm ON cl.id = cm.class_id AND cm.student_id = :user_id
             LEFT JOIN cards c ON d.id = c.deck_id
-            LEFT JOIN progress p ON c.id = p.card_id AND p.user_id = :user_id
+            LEFT JOIN progress p ON c.id = p.card_id AND p.user_id = :user_id2
+            WHERE cm.student_id IS NOT NULL OR d.is_public = true
             GROUP BY d.id, d.title, cl.name
-            ORDER BY cl.name, d.title
+            ORDER BY cl.name NULLS LAST, d.title
         ');
         $stmt->bindParam(':user_id', $userId, PDO::PARAM_INT);
+        $stmt->bindParam(':user_id2', $userId, PDO::PARAM_INT);
         $stmt->execute();
         
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+    
+    /**
+     * Resetuje progres dla zestawu (wszystkie karty wracają do 'new')
+     */
+    public function resetDeckProgress(int $userId, int $deckId): bool
+    {
+        $stmt = $this->database->connect()->prepare('
+            DELETE FROM progress
+            WHERE user_id = :user_id 
+            AND card_id IN (SELECT id FROM cards WHERE deck_id = :deck_id)
+        ');
+        $stmt->bindParam(':user_id', $userId, PDO::PARAM_INT);
+        $stmt->bindParam(':deck_id', $deckId, PDO::PARAM_INT);
+        
+        return $stmt->execute();
     }
 }

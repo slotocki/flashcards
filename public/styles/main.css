@@ -4,6 +4,17 @@
     box-sizing: border-box;
 }
 
+:root {
+    --container-max-width: 1200px;
+    --container-narrow: 800px;
+    --primary-color: #667eea;
+    --primary-dark: #5a67d8;
+    --text-color: #1f2937;
+    --text-muted: #6b7280;
+    --bg-color: #f5f5f5;
+    --card-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
 body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
     display: flex;
@@ -55,12 +66,32 @@ nav a:hover {
     color: #2196F3;
 }
 
+/* ==================== Globalne style flag ==================== */
+.flag {
+    width: 24px;
+    height: 18px;
+    object-fit: cover;
+    display: inline-block;
+    vertical-align: middle;
+    border-radius: 3px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
+    flex-shrink: 0;
+}
+
+/* Flaga z nazwą języka obok */
+.lang-name {
+    font-size: 0.9rem;
+    color: #555;
+    margin-left: 0.25rem;
+    vertical-align: middle;
+}
+
 .container {
     display: flex;
     flex: 1;
     gap: 2rem;
     padding: 2rem;
-    max-width: 1400px;
+    max-width: var(--container-max-width);
     margin: 0 auto;
     width: 100%;
 }
@@ -119,7 +150,8 @@ section h2 {
 }
 
 .teacher {
-    font-size: 0.85rem;
+    /* make teacher name size consistent with other body text on dashboard */
+    font-size: 0.95rem;
     color: #666;
 }
 
@@ -187,6 +219,22 @@ section h2 {
 
 aside {
     width: 350px;
+    flex-shrink: 0;
+}
+
+/* Ukryj aside gdy nie ma widocznej zawartości */
+aside:empty,
+aside:has(> *[style*="display: none"]),
+aside:has(> *[style*="display:none"]) {
+    display: none;
+}
+
+/* Main zajmuje pełną szerokość gdy aside jest ukryty */
+.container:has(aside:empty) main,
+.container:has(aside:not(:has(> *:not([style*="display: none"])))) main,
+.container:has(aside[style*="display: none"]) main {
+    max-width: 100%;
+    margin: 0 auto;
 }
 
 .flashcard-preview {
@@ -1025,6 +1073,25 @@ nav a.active {
 
 /* ==================== DASHBOARD LAYOUT ==================== */
 
+/* Dashboard sections equal sizing */
+main > section.class-selection,
+main > section.search-community {
+    background: white;
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    margin-bottom: 2rem;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    text-align: center;
+}
+
+main > section.search-community {
+    justify-content: center;
+    align-items: center;
+}
+
 /* Centering for dashboard sections only */
 .class-selection,
 .search-community {
@@ -1044,6 +1111,13 @@ nav a.active {
 .class-selection .add-class {
     display: inline-block;
     margin-top: 1rem;
+    color: var(--primary-color);
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.class-selection .add-class:hover {
+    text-decoration: underline;
 }
 
 /* Class selection checkboxes in forms */
@@ -1104,7 +1178,7 @@ nav a.active {
 /* ==================== ACCOUNT PAGE LAYOUT ==================== */
 
 .account-container {
-    max-width: 1000px;
+    max-width: var(--container-max-width);
     margin: 0 auto;
 }
 
@@ -1183,7 +1257,7 @@ nav a.active {
 /* ==================== CLASS VIEW PAGE FIX ==================== */
 
 .class-view-container {
-    max-width: 1000px;
+    max-width: var(--container-max-width);
     margin: 0 auto;
 }
 
@@ -1301,7 +1375,7 @@ nav a.active {
 /* ==================== ADMIN PANEL FIX ==================== */
 
 .admin-container {
-    max-width: 1200px;
+    max-width: var(--container-max-width);
     margin: 0 auto;
 }
 
@@ -1392,7 +1466,7 @@ nav a.active {
 /* ==================== COMMUNITY MODULE ==================== */
 
 .community-container {
-    max-width: 1200px;
+    max-width: var(--container-max-width);
 }
 
 .community-main {
@@ -1498,12 +1572,72 @@ nav a.active {
     height: 140px;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     overflow: hidden;
+    /* make container a flex parent so placeholders/images can center and stretch */
+    display: flex;
+    align-items: center !important;
+    justify-content: center !important;
+    min-height: 140px; /* ensure it doesn't collapse */
+    /* Give a sensible default width so placeholder doesn't shrink to emoji width
+       When .deck-card is a flex row, this makes the image column a stable size. */
+    width: 140px;
+    min-width: 120px;
+    flex: 0 0 140px;
 }
 
 .deck-card-image img {
     width: 100%;
     height: 100%;
     object-fit: cover;
+}
+
+/* Ensure any placeholder or img inside deck image containers fills area */
+.deck-card-image img {
+    width: 100% !important;
+    height: 100% !important;
+    display: block !important;
+    object-fit: cover;
+}
+
+.deck-card-image .image-placeholder,
+.deck-card-image .deck-placeholder-image {
+    width: 100% !important;
+    height: 100% !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    line-height: 1 !important;
+}
+
+/* For teacher deck image container (already flex in some places) ensure consistent children sizing */
+.teacher-deck-image img {
+    width: 100% !important;
+    height: 100% !important;
+    display: block !important;
+    object-fit: cover;
+}
+
+.teacher-deck-image .image-placeholder,
+.teacher-deck-image .deck-placeholder-image {
+    width: 100% !important;
+    height: 100% !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    line-height: 1 !important;
+}
+
+/* Responsive: on small screens make image area full width and stack content */
+@media (max-width: 768px) {
+    .deck-card-image {
+        width: 100% !important;
+        min-width: 0 !important;
+        flex: none !important;
+    }
+
+    /* ensure deck cards stack vertically on small screens */
+    .deck-card {
+        display: block !important;
+    }
 }
 
 .subscribed-badge {
@@ -2156,7 +2290,7 @@ nav a.active {
     display: flex;
     gap: 0.5rem;
     margin-bottom: 1.5rem;
-    border-bottom: 2px solid #e5e7eb;
+    border-bottom: 2px solid #e7e7eb;
     padding-bottom: 0.5rem;
 }
 
@@ -2288,8 +2422,25 @@ nav a.active {
 }
 
 .deck-placeholder-image {
+    /* Make teacher placeholder behave like image: fill the container and center icon */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
     font-size: 2.5rem;
-    color: rgba(255,255,255,0.8);
+    color: rgba(255,255,255,0.9);
+    line-height: 1;
+}
+
+/* Ensure placeholder inside deck image containers fills the available area */
+.deck-card-image .deck-placeholder-image,
+.teacher-deck-image .deck-placeholder-image {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 /* ==================== DASHBOARD STUDENT CENTERING ==================== */
@@ -2349,8 +2500,22 @@ nav a.active {
 }
 
 .class-item .flag {
-    font-size: 2rem;
-    line-height: 1;
+    margin-right: 8px;
+}
+
+/* Language badge styling */
+.language-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    font-weight: 700;
+    font-size: 1rem;
+    color: white;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    flex-shrink: 0;
 }
 
 .class-info {
@@ -2362,4 +2527,173 @@ nav a.active {
 .class-info > div {
     display: flex;
     flex-direction: column;
+}
+
+/* ==================== SHARED COMPONENTS ==================== */
+
+/* Placeholder dla obrazków */
+.image-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    font-size: 3.5rem;
+    color: white;
+}
+
+/* Toast notifications */
+.toast-container {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 10000;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.toast {
+    padding: 0.75rem 1.25rem;
+    border-radius: 8px;
+    color: white;
+    font-size: 0.9rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    animation: toastSlideIn 0.3s ease;
+}
+
+.toast-info { background: #2196F3; }
+.toast-success { background: #4CAF50; }
+.toast-error { background: #f44336; }
+.toast-warning { background: #ff9800; }
+
+.toast-fade-out {
+    animation: toastFadeOut 0.3s ease forwards;
+}
+
+@keyframes toastSlideIn {
+    from { transform: translateX(100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes toastFadeOut {
+    from { opacity: 1; }
+    to { opacity: 0; }
+}
+
+/* Unified deck card styles */
+.deck-card {
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: var(--card-shadow);
+    transition: transform 0.2s, box-shadow 0.2s;
+    display: flex;
+    flex-direction: column;
+}
+
+.deck-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+}
+
+.deck-card-image {
+    height: 140px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    overflow: hidden;
+}
+
+.deck-card-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.deck-card-content {
+    padding: 1rem;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.deck-card-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: var(--text-color);
+}
+
+.deck-card-desc {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin-bottom: 0.75rem;
+    flex: 1;
+}
+
+.deck-card-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    margin-bottom: 0.5rem;
+}
+
+.deck-card-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: auto;
+}
+
+.deck-card-actions {
+    padding: 0.75rem 1rem;
+    background: #f9fafb;
+    border-top: 1px solid #eee;
+}
+
+/* Unified class card styles */
+.class-card {
+    background: white;
+    border-radius: 12px;
+    padding: 1.25rem;
+    box-shadow: var(--card-shadow);
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.class-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+}
+
+.class-card-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.5rem;
+}
+
+.class-card-header h3 {
+    font-size: 1.1rem;
+    color: var(--text-color);
+}
+
+.class-teacher {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+}
+
+.join-code {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin-top: 0.5rem;
+}
+
+/* Grid layouts for cards */
+.decks-grid, .classes-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.5rem;
 }

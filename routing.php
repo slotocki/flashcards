@@ -76,6 +76,7 @@ class Routing {
         '#^api/progress/answer$#' => ['controller' => 'StudyApiController', 'action' => 'answer'],
         '#^api/progress/stats$#' => ['controller' => 'StudyApiController', 'action' => 'stats'],
         '#^api/progress/deck/(\d+)$#' => ['controller' => 'StudyApiController', 'action' => 'deckProgress'],
+        '#^api/progress/reset/(\d+)$#' => ['controller' => 'StudyApiController', 'action' => 'resetProgress'],
         
         // Tasks
         '#^api/classes/(\d+)/tasks$#' => ['controller' => 'ClassApiController', 'action' => 'tasks'],

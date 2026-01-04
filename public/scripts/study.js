@@ -4,6 +4,7 @@
 let currentCard = null;
 let currentDeckId = null;
 let isFlipped = false;
+let isProcessingAnswer = false; // Zapobiega wielokrotnym kliknięciom
 
 document.addEventListener('DOMContentLoaded', () => {
     initStudy();
@@ -157,7 +158,10 @@ function updateFlipState() {
  * Zapisuje odpowiedź i ładuje następną kartę
  */
 async function answerCard(answer) {
-    if (!currentCard) return;
+    // Zapobiegaj wielokrotnemu kliknięciu
+    if (!currentCard || isProcessingAnswer) return;
+    
+    isProcessingAnswer = true;
     
     const buttons = document.querySelectorAll('.study-controls button, .answer-buttons button');
     buttons.forEach(btn => btn.disabled = true);
@@ -173,9 +177,8 @@ async function answerCard(answer) {
             await loadDeckProgress();
             
             // Załaduj następną kartę po krótkim opóźnieniu
-            setTimeout(async () => {
-                await loadNextCard();
-            }, 400);
+            await new Promise(resolve => setTimeout(resolve, 400));
+            await loadNextCard();
         } else {
             showMessage('Błąd: ' + (result.error?.message || 'Nie udało się zapisać odpowiedzi'), 'error');
             buttons.forEach(btn => btn.disabled = false);
@@ -184,6 +187,8 @@ async function answerCard(answer) {
         console.error('Error answering card:', error);
         showMessage('Błąd zapisywania odpowiedzi', 'error');
         buttons.forEach(btn => btn.disabled = false);
+    } finally {
+        isProcessingAnswer = false;
     }
 }
 
@@ -278,8 +283,25 @@ function showCompleted() {
 /**
  * Resetuje progres i rozpoczyna od nowa
  */
-function restartDeck() {
-    window.location.reload();
+async function restartDeck() {
+    if (!currentDeckId) {
+        window.location.reload();
+        return;
+    }
+    
+    try {
+        const result = await API.progress.reset(currentDeckId);
+        
+        if (result.ok) {
+            // Przeładuj stronę po zresetowaniu progresu
+            window.location.reload();
+        } else {
+            showMessage('Błąd: ' + (result.error?.message || 'Nie udało się zresetować progresu'), 'error');
+        }
+    } catch (error) {
+        console.error('Error resetting deck:', error);
+        showMessage('Błąd resetowania progresu', 'error');
+    }
 }
 
 /**
@@ -339,11 +361,4 @@ function showMessage(message, type = 'info') {
     }
 }
 
-/**
- * Escape HTML
- */
-function escapeHtml(text) {
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
-}
+// escapeHtml() - używamy z shared.js

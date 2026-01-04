@@ -9,6 +9,24 @@ let currentSearch = '';
 let currentSort = 'popular';
 let currentDeckId = null;
 
+/**
+ * Obsługuje błąd ładowania obrazka zestawu - zapobiega nieskończonej pętli
+ */
+function handleDeckImageError(img) {
+    // Zapobiegaj wielokrotnemu wywoływaniu
+    if (img.dataset.errorHandled) return;
+    img.dataset.errorHandled = 'true';
+    
+    // Usuń onerror aby zapobiec nieskończonej pętli
+    img.onerror = null;
+    
+    // Zastąp obrazkiem zastępczym z odpowiednimi stylami
+    const placeholder = document.createElement('div');
+    placeholder.className = 'image-placeholder';
+    placeholder.textContent = '📚';
+    img.parentNode.replaceChild(placeholder, img);
+}
+
 // Inicjalizacja po załadowaniu strony
 document.addEventListener('DOMContentLoaded', () => {
     initCommunity();
@@ -207,19 +225,23 @@ function createDeckCard(deck, isSubscribed) {
     const stars = getStarsHtml(rating);
     const flag = getLanguageFlag(deck.language);
     const levelBadge = getLevelBadge(deck.level);
-    const imageUrl = deck.imageUrl || '/public/images/default-deck.png';
+    
+    // Jeśli nie ma obrazka, użyj placeholder CSS zamiast domyślnego obrazka
+    const imageHtml = deck.imageUrl 
+        ? `<img src="${deck.imageUrl}" alt="${escapeHtml(deck.title)}" onerror="handleDeckImageError(this)" />`
+        : '<div class="image-placeholder">📚</div>';
     
     return `
         <div class="deck-card" data-deck-id="${deck.id}">
             <div class="deck-card-image">
-                <img src="${imageUrl}" alt="${escapeHtml(deck.title)}" onerror="this.src='/public/images/default-deck.png'" />
+                ${imageHtml}
                 ${isSubscribed ? '<span class="subscribed-badge">✓ Subskrybowane</span>' : ''}
             </div>
             <div class="deck-card-content">
                 <h3 class="deck-card-title">${flag} ${escapeHtml(deck.title)}</h3>
                 <p class="deck-card-meta">
-                    <span class="teacher-name">👤 ${escapeHtml(deck.teacherName || 'Nieznany')}</span>
-                    <span class="card-count">📚 ${deck.cardCount || 0} fiszek</span>
+                    <span class="teacher-name">${escapeHtml(deck.teacherName || 'Nieznany')}</span>
+                    <span class="card-count">${deck.cardCount || 0} fiszek</span>
                 </p>
                 <div class="deck-card-footer">
                     ${levelBadge}
@@ -290,8 +312,14 @@ function renderDeckDetails(deck) {
     document.getElementById('modalDeckDescription').textContent = deck.description || 'Brak opisu';
     
     const imageEl = document.getElementById('modalDeckImage');
+    imageEl.dataset.errorHandled = '';  // Reset flagi przy nowym obrazku
     imageEl.src = deck.imageUrl || '/public/images/default-deck.png';
-    imageEl.onerror = () => { imageEl.src = '/public/images/default-deck.png'; };
+    imageEl.onerror = function() { 
+        if (this.dataset.errorHandled) return;
+        this.dataset.errorHandled = 'true';
+        this.onerror = null;
+        this.style.display = 'none';
+    };
     
     // Ocena
     document.getElementById('modalAverageRating').textContent = (deck.averageRating || 0).toFixed(1);
@@ -469,45 +497,13 @@ async function toggleSubscription() {
 }
 
 // ================== Funkcje pomocnicze ==================
+// Korzystamy z funkcji z shared.js: getLanguageFlagHtml, getStarsHtml, getLevelLabel, escapeHtml, showToast
 
 /**
- * Zwraca flagę dla języka
+ * Zwraca flagę dla języka - alias dla kompatybilności
  */
 function getLanguageFlag(language) {
-    if (!language) return '';
-    
-    const flags = {
-        'en': '🇬🇧',
-        'de': '🇩🇪',
-        'fr': '🇫🇷',
-        'es': '🇪🇸',
-        'it': '🇮🇹',
-        'pl': '🇵🇱',
-        'ru': '🇷🇺',
-        'jp': '🇯🇵',
-        'cn': '🇨🇳',
-        'kr': '🇰🇷',
-        'pt': '🇵🇹'
-    };
-    
-    return flags[language.toLowerCase()] || '';
-}
-
-/**
- * Zwraca HTML gwiazdek dla oceny
- */
-function getStarsHtml(rating) {
-    const fullStars = Math.floor(rating);
-    const halfStar = rating % 1 >= 0.5;
-    const emptyStars = 5 - fullStars - (halfStar ? 1 : 0);
-    
-    let html = '<span class="stars">';
-    html += '★'.repeat(fullStars);
-    if (halfStar) html += '½';
-    html += '☆'.repeat(emptyStars);
-    html += '</span>';
-    
-    return html;
+    return getLanguageFlagHtml(language, false);
 }
 
 /**
@@ -522,53 +518,6 @@ function getLevelBadge(level) {
     
     const levelInfo = levels[level] || levels['beginner'];
     return `<span class="level-badge ${levelInfo.class}">${levelInfo.label}</span>`;
-}
-
-/**
- * Zwraca etykietę poziomu
- */
-function getLevelLabel(level) {
-    const labels = {
-        'beginner': 'Początkujący',
-        'intermediate': 'Średniozaawansowany',
-        'advanced': 'Zaawansowany'
-    };
-    return labels[level] || level;
-}
-
-/**
- * Escape HTML
- */
-function escapeHtml(text) {
-    if (!text) return '';
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
-}
-
-/**
- * Pokazuje toast
- */
-function showToast(message, type = 'success') {
-    // Usuń istniejący toast
-    const existingToast = document.querySelector('.toast');
-    if (existingToast) {
-        existingToast.remove();
-    }
-    
-    const toast = document.createElement('div');
-    toast.className = `toast toast-${type}`;
-    toast.textContent = message;
-    document.body.appendChild(toast);
-    
-    setTimeout(() => {
-        toast.classList.add('show');
-    }, 10);
-    
-    setTimeout(() => {
-        toast.classList.remove('show');
-        setTimeout(() => toast.remove(), 300);
-    }, 3000);
 }
 
 // Sprawdź czy jest parametr share w URL

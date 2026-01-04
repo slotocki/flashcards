@@ -242,7 +242,6 @@
                 <p class="description" id="deckDescription">Ładowanie opisu...</p>
                 <div class="deck-stats">
                     <div class="stat">
-                        <span>📚</span>
                         <span id="cardCount">0 fiszek</span>
                     </div>
                     <div class="stat">
@@ -251,7 +250,6 @@
                         <span id="ratingsCount">(0 ocen)</span>
                     </div>
                     <div class="stat">
-                        <span>👁️</span>
                         <span id="viewsCount">0 wyświetleń</span>
                     </div>
                 </div>
@@ -276,6 +274,7 @@
     </div>
 
     <script src="/public/scripts/api.js"></script>
+    <script src="/public/scripts/shared.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', async () => {
             // Pobierz token z URL
@@ -321,6 +320,13 @@
             document.getElementById('ratingsCount').textContent = `(${deck.ratingsCount || 0} ocen)`;
             document.getElementById('viewsCount').textContent = `${deck.viewsCount || 0} wyświetleń`;
             
+            // Wyświetl flagę języka
+            if (deck.language) {
+                const flagUrl = `https://flagcdn.com/w40/${deck.language}.png`;
+                const flagImg = `<img src="${flagUrl}" alt="${deck.language}" title="${deck.language}" style="width: 24px; height: 16px; margin-left: 8px;">`;
+                document.getElementById('deckLevel').insertAdjacentHTML('beforeend', flagImg);
+            }
+            
             // Renderuj karty
             const cardsList = document.getElementById('cardsList');
             if (deck.cards && deck.cards.length > 0) {
@@ -339,20 +345,7 @@
             document.title = `${deck.title} - MemoRise`;
         }
         
-        function getLevelLabel(level) {
-            const labels = {
-                'beginner': 'Poziom Początkujący',
-                'intermediate': 'Poziom Średniozaawansowany',
-                'advanced': 'Poziom Zaawansowany'
-            };
-            return labels[level] || level || 'Nieznany poziom';
-        }
-        
-        function escapeHtml(text) {
-            const div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML;
-        }
+        // getLevelLabel() i escapeHtml() - używamy z shared.js
     </script>
 </body>
 </html>

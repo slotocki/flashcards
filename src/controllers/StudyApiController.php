@@ -233,4 +233,41 @@ class StudyApiController extends ApiController
             'progress' => $totalCards > 0 ? round(($knownCards / $totalCards) * 100, 1) : 0
         ]);
     }
+    
+    /**
+     * POST /api/progress/reset/{deckId} - resetuje progres dla zestawu
+     */
+    public function resetProgress(int $deckId): void
+    {
+        $this->requireMethod('POST');
+        $this->requireAuth();
+        
+        $deck = $this->deckRepository->getDeckById($deckId);
+        
+        if (!$deck) {
+            $this->error('NOT_FOUND', 'Zestaw nie istnieje', 404);
+        }
+        
+        // Sprawdź dostęp
+        $hasAccess = false;
+        
+        if ($deck->isPublic()) {
+            $hasAccess = true;
+        } else {
+            $classId = $deck->getClassId();
+            $hasAccess = $this->classRepository->hasAccessToClass($classId, $this->getUserId(), $this->getUserRole());
+        }
+        
+        if (!$hasAccess) {
+            $this->error('FORBIDDEN', 'Brak dostępu do tego zestawu', 403);
+        }
+        
+        try {
+            $this->progressRepository->resetDeckProgress($this->getUserId(), $deckId);
+            $this->success(['message' => 'Progres został zresetowany']);
+        } catch (Exception $e) {
+            error_log("Error resetting progress: " . $e->getMessage());
+            $this->error('SERVER_ERROR', 'Błąd podczas resetowania progresu', 500);
+        }
+    }
 }

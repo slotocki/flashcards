@@ -193,6 +193,10 @@ const API = {
         
         async deck(deckId) {
             return API.get(`/api/progress/deck/${deckId}`);
+        },
+        
+        async reset(deckId) {
+            return API.post(`/api/progress/reset/${deckId}`);
         }
     }
 };

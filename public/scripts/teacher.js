@@ -6,6 +6,24 @@ let selectedClassId = null;
 let selectedDeckId = null;
 let teacherClasses = [];
 
+/**
+ * Obsługuje błąd ładowania obrazka - ustawia domyślny obrazek i zapobiega nieskończonej pętli
+ */
+function handleImageError(img) {
+    // Zapobiegaj wielokrotnemu wywoływaniu
+    if (img.dataset.errorHandled) return;
+    img.dataset.errorHandled = 'true';
+    
+    // Usuń onerror aby zapobiec nieskończonej pętli
+    img.onerror = null;
+    
+    // Zastąp obrazkiem zastępczym lub placeholder div
+    const placeholder = document.createElement('div');
+    placeholder.className = 'deck-placeholder-image';
+    placeholder.textContent = '📚';
+    img.parentNode.replaceChild(placeholder, img);
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     initTeacherPanel();
 });
@@ -47,7 +65,7 @@ function renderTeacherDecks(decks) {
     
     container.innerHTML = decks.map(d => {
         const imageHtml = d.imageUrl 
-            ? `<img src="${d.imageUrl}" alt="${escapeHtml(d.title)}">`
+            ? `<img src="${d.imageUrl}" alt="${escapeHtml(d.title)}" onerror="handleImageError(this)">`
             : '<div class="deck-placeholder-image">📚</div>';
         
         return `
@@ -160,38 +178,20 @@ function renderClassDecks(decks) {
 }
 
 async function showCardsManager(deckId, deckTitle) {
-    selectedDeckId = deckId;
-    
+    // Use the same modal as from "My decks" section for consistent UI
     try {
-        const result = await API.decks.cards(deckId);
-        
+        const result = await API.decks.get(deckId);
         if (result.ok) {
-            const cardsHtml = result.data.length === 0 
-                ? '<p class="no-data">Brak fiszek</p>'
-                : result.data.map(c => `
-                    <div class="card-item">
-                        ${c.imagePath ? `<img src="${c.imagePath}" alt="Obrazek" class="card-thumbnail" style="width: 50px; height: 50px; object-fit: cover; border-radius: 4px; margin-right: 10px;">` : ''}
-                        <span class="card-front">${escapeHtml(c.front)}</span>
-                        <span class="separator">→</span>
-                        <span class="card-back">${escapeHtml(c.back)}</span>
-                    </div>
-                `).join('');
-            
-            const decksContainer = document.getElementById('teacherDecks') || document.getElementById('decksList');
-            
-            decksContainer.innerHTML = `
-                <div class="cards-manager">
-                    <div class="manager-header">
-                        <button class="btn-sm" onclick="goBackFromCardsManager()">← Wróć</button>
-                        <h3>Fiszki: ${deckTitle}</h3>
-                        <button class="btn-primary btn-sm" onclick="showCreateCardModal()">+ Dodaj fiszkę</button>
-                    </div>
-                    <div class="cards-list">${cardsHtml}</div>
-                </div>
-            `;
+            const deck = result.data;
+            showDeckManageModal(deckId, deckTitle, deck.isPublic || false, deck.shareToken || '');
+        } else {
+            // Fallback to basic modal if can't get deck info
+            showDeckManageModal(deckId, deckTitle, false, '');
         }
     } catch (error) {
-        console.error('Error loading cards:', error);
+        console.error('Error loading deck:', error);
+        // Fallback
+        showDeckManageModal(deckId, deckTitle, false, '');
     }
 }
 
@@ -589,11 +589,16 @@ function showCreateDeckModal() {
 }
 
 function showCreateCardModal() {
-    if (!selectedDeckId) {
+    const deckIdToUse = managingDeckId || selectedDeckId;
+    if (!deckIdToUse) {
         showToast('Wybierz najpierw zestaw', 'error');
         return;
     }
-    document.getElementById('createCardModal').style.display = 'flex';
+    // Store the deck ID for form submission
+    selectedDeckId = deckIdToUse;
+    const modal = document.getElementById('createCardModal');
+    modal.style.display = 'flex';
+    modal.style.zIndex = '1100'; // Wyższy z-index niż modal zarządzaj (1000)
 }
 
 async function showCreateTaskModal() {
@@ -777,59 +782,10 @@ function clearDeckImagePreview() {
     if (imagePreview) imagePreview.style.display = 'none';
 }
 
+// Używamy funkcji z shared.js: getLanguageFlagHtml, getLevelLabel, escapeHtml
+// Alias dla kompatybilności wstecznej
 function getLanguageFlag(lang) {
-    if (!lang) return '<span class="lang-badge">🌐</span>';
-    const language = lang.toLowerCase();
-    
-    // Flagi jako emoji i pełne nazwy języków
-    const languageInfo = {
-        'de': { flag: '🇩🇪', name: 'Niemiecki' },
-        'en': { flag: '🇬🇧', name: 'Angielski' },
-        'es': { flag: '🇪🇸', name: 'Hiszpański' },
-        'fr': { flag: '🇫🇷', name: 'Francuski' },
-        'it': { flag: '🇮🇹', name: 'Włoski' },
-        'ru': { flag: '🇷🇺', name: 'Rosyjski' },
-        'pl': { flag: '🇵🇱', name: 'Polski' },
-        'ja': { flag: '🇯🇵', name: 'Japoński' },
-        'zh': { flag: '🇨🇳', name: 'Chiński' },
-        'pt': { flag: '🇵🇹', name: 'Portugalski' },
-        'nl': { flag: '🇳🇱', name: 'Niderlandzki' },
-        'sv': { flag: '🇸🇪', name: 'Szwedzki' },
-        'no': { flag: '🇳🇴', name: 'Norweski' },
-        'da': { flag: '🇩🇰', name: 'Duński' },
-        'fi': { flag: '🇫🇮', name: 'Fiński' },
-        'cs': { flag: '🇨🇿', name: 'Czeski' },
-        'sk': { flag: '🇸🇰', name: 'Słowacki' },
-        'uk': { flag: '🇺🇦', name: 'Ukraiński' },
-        'el': { flag: '🇬🇷', name: 'Grecki' },
-        'tr': { flag: '🇹🇷', name: 'Turecki' },
-        'ar': { flag: '🇸🇦', name: 'Arabski' },
-        'ko': { flag: '🇰🇷', name: 'Koreański' },
-        'hi': { flag: '🇮🇳', name: 'Hindi' }
-    };
-    
-    const info = languageInfo[language];
-    if (info) {
-        return `<span class="lang-flag" title="${info.name}">${info.flag}</span><span class="lang-name">${info.name}</span>`;
-    }
-    
-    return `<span class="lang-badge">${lang.toUpperCase()}</span>`;
-}
-
-function getLevelLabel(level) {
-    const labels = {
-        'beginner': 'Początkujący',
-        'intermediate': 'Średni',
-        'advanced': 'Zaawansowany'
-    };
-    return labels[level] || level;
-}
-
-function escapeHtml(text) {
-    if (!text) return '';
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
+    return getLanguageFlagHtml(lang, true);
 }
 
 function deleteSelectedClass() {
@@ -857,6 +813,7 @@ async function showDeckManageModal(deckId, deckTitle, isPublic, shareToken) {
                 <div class="modal-body">
                     <div class="manage-tabs">
                         <button class="manage-tab active" data-tab="cards">Fiszki</button>
+                        <button class="manage-tab" data-tab="settings">Ustawienia</button>
                         <button class="manage-tab" data-tab="classes">Klasy</button>
                         <button class="manage-tab" data-tab="sharing">Udostępnianie</button>
                     </div>
@@ -868,6 +825,38 @@ async function showDeckManageModal(deckId, deckTitle, isPublic, shareToken) {
                         <div id="manageCardsList" class="cards-list">
                             <p class="loading">Ładowanie fiszek...</p>
                         </div>
+                    </div>
+                    
+                    <div class="manage-content" id="settingsContent" style="display: none;">
+                        <form id="editDeckSettingsForm">
+                            <div class="input-group">
+                                <label for="editDeckTitle">Nazwa zestawu</label>
+                                <input type="text" id="editDeckTitle" name="title" required maxlength="200">
+                            </div>
+                            <div class="input-group">
+                                <label for="editDeckDescription">Opis (opcjonalnie)</label>
+                                <textarea id="editDeckDescription" name="description" rows="3"></textarea>
+                            </div>
+                            <div class="input-group">
+                                <label for="editDeckLevel">Poziom trudności</label>
+                                <select id="editDeckLevel" name="level">
+                                    <option value="beginner">Początkujący</option>
+                                    <option value="intermediate">Średniozaawansowany</option>
+                                    <option value="advanced">Zaawansowany</option>
+                                </select>
+                            </div>
+                            <div class="input-group">
+                                <label for="editDeckImage">Zmień zdjęcie poglądowe</label>
+                                <div id="currentImagePreview" class="current-image-preview" style="margin-bottom: 0.5rem;">
+                                    <img id="editDeckCurrentImage" src="" alt="Aktualne zdjęcie" style="max-width: 200px; max-height: 150px; border-radius: 8px; display: none;">
+                                </div>
+                                <input type="file" id="editDeckImage" name="deckImage" accept="image/jpeg,image/png,image/gif,image/webp">
+                                <small class="input-hint">Akceptowane formaty: JPG, PNG, GIF, WEBP (max 2MB)</small>
+                            </div>
+                            <div class="modal-actions" style="margin-top: 1rem;">
+                                <button type="submit" class="btn-primary">Zapisz ustawienia</button>
+                            </div>
+                        </form>
                     </div>
                     
                     <div class="manage-content" id="classesContent" style="display: none;">
@@ -918,6 +907,12 @@ async function showDeckManageModal(deckId, deckTitle, isPublic, shareToken) {
                 const contentId = tab.dataset.tab + 'Content';
                 document.getElementById(contentId).style.display = 'block';
             });
+        });
+        
+        // Setup settings form
+        document.getElementById('editDeckSettingsForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            await saveDeckSettings();
         });
     }
     
