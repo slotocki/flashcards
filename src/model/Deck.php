@@ -3,7 +3,8 @@
 class Deck
 {
     private int $id;
-    private int $classId;
+    private int $teacherId;
+    private ?int $classId;  // Deprecated - używaj class_decks
     private string $title;
     private ?string $description;
     private string $level;
@@ -20,7 +21,8 @@ class Deck
 
     public function __construct(
         int $id,
-        int $classId,
+        int $teacherId,
+        ?int $classId,
         string $title,
         ?string $description = null,
         string $level = 'beginner',
@@ -36,6 +38,7 @@ class Deck
         ?string $teacherName = null
     ) {
         $this->id = $id;
+        $this->teacherId = $teacherId;
         $this->classId = $classId;
         $this->title = $title;
         $this->description = $description;
@@ -53,7 +56,8 @@ class Deck
     }
 
     public function getId(): int { return $this->id; }
-    public function getClassId(): int { return $this->classId; }
+    public function getTeacherId(): int { return $this->teacherId; }
+    public function getClassId(): ?int { return $this->classId; }
     public function getTitle(): string { return $this->title; }
     public function getDescription(): ?string { return $this->description; }
     public function getLevel(): string { return $this->level; }
@@ -72,6 +76,7 @@ class Deck
     {
         return [
             'id' => $this->id,
+            'teacherId' => $this->teacherId,
             'classId' => $this->classId,
             'title' => $this->title,
             'description' => $this->description,

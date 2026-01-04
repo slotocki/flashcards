@@ -29,6 +29,7 @@ class SecurityController extends AppController
 
     /**
      * Waliduje złożoność hasła (min. długość, wielkie/małe litery, cyfra)
+     * Obsługuje polskie znaki (Ą, Ć, Ę, Ł, Ń, Ó, Ś, Ź, Ż, ą, ć, ę, ł, ń, ó, ś, ź, ż)
      */
     private function isValidPassword(string $password): array
     {
@@ -40,10 +41,12 @@ class SecurityController extends AppController
         if (strlen($password) > self::MAX_PASSWORD_LENGTH) {
             $errors[] = 'Hasło może mieć maksimum ' . self::MAX_PASSWORD_LENGTH . ' znaków';
         }
-        if (!preg_match('/[A-Z]/', $password)) {
+        // Używamy Unicode property \p{Lu} dla wielkich liter (obsługuje polskie znaki)
+        if (!preg_match('/\p{Lu}/u', $password)) {
             $errors[] = 'Hasło musi zawierać przynajmniej jedną wielką literę';
         }
-        if (!preg_match('/[a-z]/', $password)) {
+        // Używamy Unicode property \p{Ll} dla małych liter (obsługuje polskie znaki)
+        if (!preg_match('/\p{Ll}/u', $password)) {
             $errors[] = 'Hasło musi zawierać przynajmniej jedną małą literę';
         }
         if (!preg_match('/[0-9]/', $password)) {
@@ -196,5 +199,21 @@ class SecurityController extends AppController
         $url = "http://$_SERVER[HTTP_HOST]";
         header("Location: {$url}/login");
         exit();
+    }
+    
+    /**
+     * Wyświetla formularz "zapomniałem hasła"
+     */
+    public function forgotPassword()
+    {
+        return $this->render('forgot_password');
+    }
+    
+    /**
+     * Wyświetla formularz resetowania hasła
+     */
+    public function resetPassword()
+    {
+        return $this->render('reset_password');
     }
 }

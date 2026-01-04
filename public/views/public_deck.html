@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Publiczny zestaw fiszek - MemoRise</title>
+    <link href="/public/styles/main.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f5f5f5;
+        }
+        
+        .public-nav {
+            background-color: white;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        .public-nav .logo {
+            width: 150px; /* Increased size */
+            height: auto; /* Maintain aspect ratio */
+        }
+        
+        .public-nav .nav-links {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+        
+        .public-deck-container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        .public-deck-header {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 1.5rem;
+        }
+        
+        .public-deck-header h1 {
+            font-size: 1.75rem;
+            color: #1f2937;
+            margin-bottom: 0.5rem;
+        }
+        
+        .public-deck-header .meta {
+            color: #6b7280;
+            font-size: 0.95rem;
+        }
+        
+        .public-deck-header .description {
+            margin-top: 1rem;
+            color: #4b5563;
+            line-height: 1.6;
+        }
+        
+        .deck-stats {
+            display: flex;
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+            flex-wrap: wrap;
+        }
+        
+        .deck-stats .stat {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: #f9fafb;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            color: #374151;
+        }
+        
+        .cards-preview {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 1.5rem;
+        }
+        
+        .cards-preview h2 {
+            font-size: 1.25rem;
+            margin-bottom: 1.25rem;
+            color: #1f2937;
+        }
+        
+        .preview-card {
+            display: flex;
+            align-items: center;
+            padding: 1rem;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            margin-bottom: 0.75rem;
+            transition: all 0.2s;
+            background: #fff;
+        }
+        
+        .preview-card:hover {
+            background: #f9fafb;
+            border-color: #d1d5db;
+        }
+        
+        .preview-card .front {
+            flex: 1;
+            font-weight: 500;
+            color: #1f2937;
+        }
+        
+        .preview-card .back {
+            flex: 1;
+            color: #6b7280;
+            text-align: right;
+        }
+        
+        .preview-card .separator {
+            color: #9ca3af;
+            margin: 0 1rem;
+        }
+        
+        .preview-card-image {
+            width: 50px;
+            height: 50px;
+            border-radius: 6px;
+            margin-right: 1rem;
+            object-fit: cover;
+        }
+        
+        .cta-section {
+            background: white;
+            border-radius: 12px;
+            padding: 2.5rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        
+        .cta-section h3 {
+            font-size: 1.5rem;
+            margin-bottom: 0.75rem;
+            color: #1f2937;
+        }
+        
+        .cta-section p {
+            color: #6b7280;
+            margin-bottom: 1.5rem;
+            font-size: 1rem;
+        }
+        
+        .cta-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        
+        .cta-buttons .btn-primary,
+        .cta-buttons .btn-secondary {
+            padding: 0.875rem 2rem;
+            border-radius: 8px;
+            font-size: 1rem;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        
+        @media (max-width: 768px) {
+            .public-deck-container {
+                padding: 1rem;
+            }
+            
+            .preview-card {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.5rem;
+            }
+            
+            .preview-card .separator {
+                display: none;
+            }
+            
+            .preview-card .back {
+                text-align: left;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="public-nav">
+        <a href="/login"><img src="/public/images/logo.png" alt="MemoRise Logo" class="logo"></a>
+        <div class="nav-links">
+            <a href="/login" class="btn-secondary">Zaloguj się</a>
+            <a href="/register" class="btn-primary">Zarejestruj się</a>
+        </div>
+    </nav>
+
+    <div class="public-deck-container">
+        <div class="public-deck-header">
+            <h1 id="deckTitle">Ładowanie...</h1>
+            <p class="meta">
+                <span id="deckAuthor"></span> • <span id="deckLevel"></span>
+            </p>
+            <p class="description" id="deckDescription">Ładowanie opisu...</p>
+            <div class="deck-stats">
+                <div class="stat">
+                    <span>📚</span>
+                    <span id="cardCount">0 fiszek</span>
+                </div>
+                <div class="stat">
+                    <span>⭐</span>
+                    <span id="deckRating">0.0</span>
+                    <span id="ratingsCount">(0 ocen)</span>
+                </div>
+                <div class="stat">
+                    <span>👁️</span>
+                    <span id="viewsCount">0 wyświetleń</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="cards-preview">
+            <h2>Podgląd fiszek</h2>
+            <div id="cardsList">
+                <p class="loading">Ładowanie fiszek...</p>
+            </div>
+        </div>
+
+        <div class="cta-section">
+            <h3>🎓 Chcesz uczyć się z tych fiszek?</h3>
+            <p>Zarejestruj się lub zaloguj, aby rozpocząć naukę i śledzić swój progres!</p>
+            <div class="cta-buttons">
+                <a href="/register" class="btn-primary">Utwórz konto za darmo</a>
+                <a href="/login" class="btn-secondary">Mam już konto</a>
+            </div>
+        </div>
+    </div>
+
+    <script src="/public/scripts/api.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Pobierz token z URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const shareToken = urlParams.get('token');
+            
+            if (!shareToken) {
+                document.getElementById('deckTitle').textContent = 'Błąd';
+                document.getElementById('deckDescription').textContent = 'Brak tokenu udostępniania w URL.';
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/community/share/${shareToken}`);
+                const result = await response.json();
+                
+                if (result.ok && result.data) {
+                    renderDeck(result.data);
+                } else {
+                    document.getElementById('deckTitle').textContent = 'Nie znaleziono';
+                    document.getElementById('deckDescription').textContent = result.error?.message || 'Zestaw nie istnieje lub link wygasł.';
+                }
+            } catch (error) {
+                console.error('Błąd:', error);
+                document.getElementById('deckTitle').textContent = 'Błąd';
+                document.getElementById('deckDescription').textContent = 'Wystąpił błąd podczas ładowania zestawu.';
+            }
+        });
+        
+        function renderDeck(deck) {
+            document.getElementById('deckTitle').textContent = deck.title || 'Bez tytułu';
+            document.getElementById('deckDescription').textContent = deck.description || 'Brak opisu';
+            document.getElementById('deckAuthor').textContent = deck.teacherName ? `Autor: ${deck.teacherName}` : '';
+            document.getElementById('deckLevel').textContent = getLevelLabel(deck.level);
+            document.getElementById('cardCount').textContent = `${deck.cardCount || 0} fiszek`;
+            document.getElementById('deckRating').textContent = (deck.averageRating || 0).toFixed(1);
+            document.getElementById('ratingsCount').textContent = `(${deck.ratingsCount || 0} ocen)`;
+            document.getElementById('viewsCount').textContent = `${deck.viewsCount || 0} wyświetleń`;
+            
+            // Renderuj karty
+            const cardsList = document.getElementById('cardsList');
+            if (deck.cards && deck.cards.length > 0) {
+                cardsList.innerHTML = deck.cards.map(card => `
+                    <div class="preview-card">
+                        ${card.imagePath ? `<img src="${card.imagePath}" alt="" class="preview-card-image">` : ''}
+                        <span class="front">${escapeHtml(card.front)}</span>
+                        <span class="separator">→</span>
+                        <span class="back">${escapeHtml(card.back)}</span>
+                    </div>
+                `).join('');
+            } else {
+                cardsList.innerHTML = '<p>Ten zestaw nie ma jeszcze fiszek.</p>';
+            }
+            
+            // Zaktualizuj tytuł strony
+            document.title = `${deck.title} - MemoRise`;
+        }
+        
+        function getLevelLabel(level) {
+            const labels = {
+                'beginner': 'Początkujący',
+                'intermediate': 'Średniozaawansowany',
+                'advanced': 'Zaawansowany'
+            };
+            return labels[level] || level || 'Nieznany poziom';
+        }
+        
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+    </script>
+</body>
+</html>

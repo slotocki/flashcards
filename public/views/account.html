@@ -11,7 +11,7 @@
         <div class="nav-brand">
             <a href="/dashboard"><img src="/public/images/logo.png" alt="MemoRise Logo" class="logo"></a>
         </div>
-        <ul>
+        <ul id="navMenu">
             <li><a href="/dashboard">Strona główna</a></li>
             <li><a href="/community">Społeczność</a></li>
             <li><a href="/progress">Twój progres</a></li>
@@ -103,7 +103,38 @@
         document.addEventListener('DOMContentLoaded', async () => {
             await loadProfile();
             setupForms();
+            adjustNavForRole();
         });
+        
+        async function adjustNavForRole() {
+            try {
+                const result = await API.auth.me();
+                if (result.ok) {
+                    const navMenu = document.getElementById('navMenu');
+                    
+                    if (result.data.role === 'admin') {
+                        // Nawigacja dla admina
+                        navMenu.innerHTML = `
+                            <li><a href="/admin">Panel admina</a></li>
+                            <li><a href="/account" class="active">Twoje konto</a></li>
+                            <li><a href="#" onclick="logout(); return false;">Wyloguj</a></li>
+                        `;
+                        document.querySelector('.nav-brand a').href = '/admin';
+                    } else if (result.data.role === 'teacher') {
+                        // Nawigacja dla nauczyciela
+                        navMenu.innerHTML = `
+                            <li><a href="/dashboard">Strona główna</a></li>
+                            <li><a href="/teacher">Twoje klasy</a></li>
+                            <li><a href="/account" class="active">Twoje konto</a></li>
+                            <li><a href="#" onclick="logout(); return false;">Wyloguj</a></li>
+                        `;
+                    }
+                    // Dla ucznia zostaje domyślna nawigacja
+                }
+            } catch (error) {
+                console.error('Error checking user role:', error);
+            }
+        }
         
         async function loadProfile() {
             try {

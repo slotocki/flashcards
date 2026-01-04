@@ -98,6 +98,7 @@ function createClassElement(classData, template) {
                 <span class="flag">${getLanguageFlag(classData.language)}</span>
                 <div>
                     <h3 class="class-name"></h3>
+                    <p class="class-language"></p>
                     <p class="teacher"></p>
                 </div>
             </div>
@@ -109,11 +110,13 @@ function createClassElement(classData, template) {
     const nameEl = element.querySelector('.class-name, h3');
     const teacherEl = element.querySelector('.teacher');
     const flagEl = element.querySelector('.flag');
+    const langEl = element.querySelector('.class-language');
     const button = element.querySelector('button');
     
     if (nameEl) nameEl.textContent = classData.name;
     if (teacherEl) teacherEl.textContent = classData.teacherName || '';
     if (flagEl) flagEl.textContent = getLanguageFlag(classData.language);
+    if (langEl) langEl.textContent = getLanguageName(classData.language);
     
     if (button) {
         button.addEventListener('click', () => {
@@ -127,7 +130,7 @@ function createClassElement(classData, template) {
 }
 
 /**
- * Zwraca flagę dla języka
+ * Zwraca flagę dla języka (emoji)
  */
 function getLanguageFlag(language) {
     if (!language) return '📚';
@@ -141,9 +144,57 @@ function getLanguageFlag(language) {
         'pl': '🇵🇱',
         'ru': '🇷🇺',
         'ja': '🇯🇵',
-        'zh': '🇨🇳'
+        'zh': '🇨🇳',
+        'pt': '🇵🇹',
+        'nl': '🇳🇱',
+        'sv': '�🇪',
+        'no': '�🇳🇴',
+        'da': '🇩🇰',
+        'fi': '🇫🇮',
+        'cs': '🇨🇿',
+        'sk': '🇸🇰',
+        'uk': '🇺🇦',
+        'el': '🇬🇷',
+        'tr': '🇹🇷',
+        'ar': '🇸🇦',
+        'ko': '🇰🇷',
+        'hi': '🇮🇳'
     };
     return flags[lang] || '📚';
+}
+
+/**
+ * Zwraca pełną nazwę języka
+ */
+function getLanguageName(language) {
+    if (!language) return '';
+    const lang = language.toLowerCase();
+    const names = {
+        'de': 'Niemiecki',
+        'en': 'Angielski',
+        'es': 'Hiszpański',
+        'fr': 'Francuski',
+        'it': 'Włoski',
+        'pl': 'Polski',
+        'ru': 'Rosyjski',
+        'ja': 'Japoński',
+        'zh': 'Chiński',
+        'pt': 'Portugalski',
+        'nl': 'Niderlandzki',
+        'sv': 'Szwedzki',
+        'no': 'Norweski',
+        'da': 'Duński',
+        'fi': 'Fiński',
+        'cs': 'Czeski',
+        'sk': 'Słowacki',
+        'uk': 'Ukraiński',
+        'el': 'Grecki',
+        'tr': 'Turecki',
+        'ar': 'Arabski',
+        'ko': 'Koreański',
+        'hi': 'Hindi'
+    };
+    return names[lang] || language.toUpperCase();
 }
 
 /**

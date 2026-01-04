@@ -125,6 +125,10 @@ const API = {
         
         async createTask(classId, data) {
             return API.post(`/api/classes/${classId}/tasks`, data);
+        },
+        
+        async deleteTask(classId, taskId) {
+            return API.delete(`/api/classes/${classId}/tasks/${taskId}`);
         }
     },
     
@@ -135,12 +139,16 @@ const API = {
             return API.get(`/api/classes/${classId}/decks`);
         },
         
+        async listTeacherDecks() {
+            return API.get('/api/teacher/decks');
+        },
+        
         async get(id) {
             return API.get(`/api/decks/${id}`);
         },
         
-        async create(classId, data) {
-            return API.post(`/api/classes/${classId}/decks`, data);
+        async create(data) {
+            return API.post('/api/teacher/decks', data);
         },
         
         async update(id, data) {
@@ -149,6 +157,10 @@ const API = {
         
         async delete(id) {
             return API.delete(`/api/decks/${id}`);
+        },
+        
+        async assignToClasses(deckId, classIds) {
+            return API.put(`/api/decks/${deckId}/assign-classes`, { classIds });
         },
         
         async cards(deckId) {

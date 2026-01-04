@@ -35,10 +35,11 @@ CREATE TABLE class_members (
     UNIQUE(class_id, student_id)
 );
 
--- Tabela zestawów (decków)
+-- Tabela zestawów (decków) - teraz należą do nauczyciela, nie do klasy
 CREATE TABLE decks (
     id SERIAL PRIMARY KEY,
-    class_id INTEGER NOT NULL REFERENCES classes(id) ON DELETE CASCADE,
+    teacher_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    class_id INTEGER REFERENCES classes(id) ON DELETE SET NULL,  -- dla kompatybilności wstecznej
     title VARCHAR(200) NOT NULL,
     description TEXT,
     level VARCHAR(20) DEFAULT 'beginner' CHECK (level IN ('beginner', 'intermediate', 'advanced')),
@@ -47,6 +48,15 @@ CREATE TABLE decks (
     share_token VARCHAR(32) UNIQUE,
     views_count INTEGER DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Tabela przypisań zestawów do klas (relacja wiele-do-wielu)
+CREATE TABLE class_decks (
+    id SERIAL PRIMARY KEY,
+    class_id INTEGER NOT NULL REFERENCES classes(id) ON DELETE CASCADE,
+    deck_id INTEGER NOT NULL REFERENCES decks(id) ON DELETE CASCADE,
+    assigned_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(class_id, deck_id)
 );
 
 -- Tabela ocen zestawów
@@ -102,6 +112,15 @@ CREATE TABLE tasks (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Tabela tokenów resetowania hasła
+CREATE TABLE password_resets (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    token VARCHAR(64) UNIQUE NOT NULL,
+    expires_at TIMESTAMP NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 -- =====================================================
 -- Dane testowe
 -- =====================================================
@@ -122,10 +141,14 @@ VALUES
 INSERT INTO class_members (class_id, student_id)
 VALUES (1, 1);
 
--- Zestaw testowy
-INSERT INTO decks (class_id, title, description, level)
+-- Zestaw testowy (należy do nauczyciela, przypisany do klasy)
+INSERT INTO decks (teacher_id, title, description, level)
 VALUES 
-    (1, 'Die Tiere', 'Słownictwo - zwierzęta', 'beginner');
+    (2, 'Die Tiere', 'Słownictwo - zwierzęta', 'beginner');
+
+-- Przypisanie zestawu do klasy
+INSERT INTO class_decks (class_id, deck_id)
+VALUES (1, 1);
 
 -- Fiszki testowe
 INSERT INTO cards (deck_id, front, back)

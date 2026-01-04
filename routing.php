@@ -15,6 +15,8 @@ class Routing {
         'login' => ['controller' => 'SecurityController', 'action' => 'login'],
         'register' => ['controller' => 'SecurityController', 'action' => 'register'],
         'logout' => ['controller' => 'SecurityController', 'action' => 'logout'],
+        'forgot-password' => ['controller' => 'SecurityController', 'action' => 'forgotPassword'],
+        'reset-password' => ['controller' => 'SecurityController', 'action' => 'resetPassword'],
         'dashboard' => ['controller' => 'DashboardController', 'action' => 'index'],
         'study' => ['controller' => 'DashboardController', 'action' => 'study'],
         'progress' => ['controller' => 'DashboardController', 'action' => 'progress'],
@@ -23,7 +25,8 @@ class Routing {
         'account' => ['controller' => 'DashboardController', 'action' => 'account'],
         'class' => ['controller' => 'DashboardController', 'action' => 'classView'],
         'admin' => ['controller' => 'DashboardController', 'action' => 'admin'],
-        'community' => ['controller' => 'DashboardController', 'action' => 'community']
+        'community' => ['controller' => 'DashboardController', 'action' => 'community'],
+        'public-deck' => ['controller' => 'DashboardController', 'action' => 'publicDeck']
     ];
     
     // API routy zwracające JSON
@@ -35,6 +38,8 @@ class Routing {
         'api/auth/me' => ['controller' => 'AuthApiController', 'action' => 'me'],
         'api/auth/password' => ['controller' => 'AuthApiController', 'action' => 'changePassword'],
         'api/auth/profile' => ['controller' => 'AuthApiController', 'action' => 'updateProfile'],
+        'api/auth/forgot-password' => ['controller' => 'AuthApiController', 'action' => 'forgotPassword'],
+        'api/auth/reset-password' => ['controller' => 'AuthApiController', 'action' => 'resetPassword'],
         
         // Classes API
         'api/classes' => ['controller' => 'ClassApiController', 'action' => 'index'],
@@ -56,10 +61,15 @@ class Routing {
         '#^api/classes/(\d+)/members$#' => ['controller' => 'ClassApiController', 'action' => 'members'],
         '#^api/classes/(\d+)/members/(\d+)$#' => ['controller' => 'ClassApiController', 'action' => 'removeMember'],
         
-        // Decks
+        // Decks - zestawy nauczyciela (niezależne od klas)
+        '#^api/teacher/decks$#' => ['controller' => 'DeckApiController', 'action' => 'teacherDecks'],
+        
+        // Decks - przypisane do klas
         '#^api/classes/(\d+)/decks$#' => ['controller' => 'DeckApiController', 'action' => 'index'],
+        '#^api/classes/(\d+)/decks/(\d+)$#' => ['controller' => 'DeckApiController', 'action' => 'unassignFromClass'],
         '#^api/decks/(\d+)$#' => ['controller' => 'DeckApiController', 'action' => 'show'],
         '#^api/decks/(\d+)/cards$#' => ['controller' => 'DeckApiController', 'action' => 'cards'],
+        '#^api/decks/(\d+)/assign-classes$#' => ['controller' => 'DeckApiController', 'action' => 'assignToClasses'],
         
         // Study
         '#^api/study/next$#' => ['controller' => 'StudyApiController', 'action' => 'next'],
@@ -69,6 +79,7 @@ class Routing {
         
         // Tasks
         '#^api/classes/(\d+)/tasks$#' => ['controller' => 'ClassApiController', 'action' => 'tasks'],
+        '#^api/classes/(\d+)/tasks/(\d+)$#' => ['controller' => 'ClassApiController', 'action' => 'deleteTask'],
         
         // Community
         '#^api/community/deck/(\d+)$#' => ['controller' => 'CommunityApiController', 'action' => 'getDeckDetails'],
@@ -80,6 +91,9 @@ class Routing {
         // Admin
         '#^api/admin/users/(\d+)/role$#' => ['controller' => 'AdminApiController', 'action' => 'updateRole'],
         '#^api/admin/users/(\d+)/status$#' => ['controller' => 'AdminApiController', 'action' => 'updateStatus'],
+        
+        // Upload
+        '#^api/upload/deck-image$#' => ['controller' => 'DeckApiController', 'action' => 'uploadDeckImage'],
     ];
     
     public static function run(string $path) {

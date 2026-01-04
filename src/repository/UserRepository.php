@@ -225,4 +225,77 @@ class UserRepository extends Repository
             throw new Exception("Error updating profile: " . $e->getMessage());
         }
     }
+    
+    /**
+     * Zapisuje token resetowania hasła
+     */
+    public function savePasswordResetToken(int $userId, string $token, string $expiresAt): bool
+    {
+        try {
+            // Najpierw usuń stare tokeny dla tego użytkownika
+            $this->deletePasswordResetTokensByUser($userId);
+            
+            $stmt = $this->database->connect()->prepare('
+                INSERT INTO password_resets (user_id, token, expires_at) 
+                VALUES (:user_id, :token, :expires_at)
+            ');
+            $stmt->bindParam(':user_id', $userId, PDO::PARAM_INT);
+            $stmt->bindParam(':token', $token, PDO::PARAM_STR);
+            $stmt->bindParam(':expires_at', $expiresAt, PDO::PARAM_STR);
+            return $stmt->execute();
+        } catch (PDOException $e) {
+            throw new Exception("Error saving password reset token: " . $e->getMessage());
+        }
+    }
+    
+    /**
+     * Pobiera dane resetowania hasła po tokenie
+     */
+    public function getPasswordResetByToken(string $token): ?array
+    {
+        try {
+            $stmt = $this->database->connect()->prepare('
+                SELECT user_id, token, expires_at FROM password_resets WHERE token = :token
+            ');
+            $stmt->bindParam(':token', $token, PDO::PARAM_STR);
+            $stmt->execute();
+            
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+            return $result ?: null;
+        } catch (PDOException $e) {
+            throw new Exception("Error getting password reset: " . $e->getMessage());
+        }
+    }
+    
+    /**
+     * Usuwa token resetowania hasła
+     */
+    public function deletePasswordResetToken(string $token): bool
+    {
+        try {
+            $stmt = $this->database->connect()->prepare('
+                DELETE FROM password_resets WHERE token = :token
+            ');
+            $stmt->bindParam(':token', $token, PDO::PARAM_STR);
+            return $stmt->execute();
+        } catch (PDOException $e) {
+            throw new Exception("Error deleting password reset token: " . $e->getMessage());
+        }
+    }
+    
+    /**
+     * Usuwa wszystkie tokeny resetowania dla użytkownika
+     */
+    private function deletePasswordResetTokensByUser(int $userId): bool
+    {
+        try {
+            $stmt = $this->database->connect()->prepare('
+                DELETE FROM password_resets WHERE user_id = :user_id
+            ');
+            $stmt->bindParam(':user_id', $userId, PDO::PARAM_INT);
+            return $stmt->execute();
+        } catch (PDOException $e) {
+            throw new Exception("Error deleting password reset tokens: " . $e->getMessage());
+        }
+    }
 }

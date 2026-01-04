@@ -133,6 +133,15 @@ class DashboardController extends AppController
         $this->requireAuth();
         $this->render('community');
     }
+    
+    /**
+     * Publiczna strona zestawu fiszek - dostępna bez logowania
+     */
+    public function publicDeck()
+    {
+        // Ta strona jest publiczna - nie wymaga logowania
+        $this->render('public_deck');
+    }
 
     private function json($data)
     {

@@ -84,10 +84,11 @@ class ProgressRepository extends Repository
 
     /**
      * Pobiera następną kartę do nauki (priorytet: new > learning > known)
+     * Jeśli wszystkie karty są 'known', zwraca null (zakończono naukę)
      */
     public function getNextCardForStudy(int $userId, int $deckId): ?array
     {
-        // Najpierw karty bez progresu lub ze statusem 'new'
+        // Najpierw karty bez progresu lub ze statusem 'new' lub 'learning'
         $stmt = $this->database->connect()->prepare('
             SELECT c.*, COALESCE(p.status, \'new\') as progress_status
             FROM cards c
@@ -109,23 +110,7 @@ class ProgressRepository extends Repository
         
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
         
-        if (!$row) {
-            // Jeśli wszystkie karty są 'known', pobierz najdawniej przeglądaną
-            $stmt = $this->database->connect()->prepare('
-                SELECT c.*, p.status as progress_status
-                FROM cards c
-                JOIN progress p ON c.id = p.card_id AND p.user_id = :user_id
-                WHERE c.deck_id = :deck_id
-                ORDER BY p.last_reviewed ASC
-                LIMIT 1
-            ');
-            $stmt->bindParam(':user_id', $userId, PDO::PARAM_INT);
-            $stmt->bindParam(':deck_id', $deckId, PDO::PARAM_INT);
-            $stmt->execute();
-            
-            $row = $stmt->fetch(PDO::FETCH_ASSOC);
-        }
-        
+        // Jeśli wszystkie karty są 'known', zwracamy null (ukończono zestaw)
         return $row ?: null;
     }
 

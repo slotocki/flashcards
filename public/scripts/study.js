@@ -73,6 +73,10 @@ async function loadNextCard() {
                 displayCard(result.data);
                 isFlipped = false;
                 updateFlipState();
+                
+                // Odblokuj przyciski
+                const buttons = document.querySelectorAll('.study-controls button');
+                buttons.forEach(btn => btn.disabled = false);
             } else {
                 showCompleted();
             }
@@ -94,7 +98,7 @@ function displayCard(data) {
     const frontEl = document.querySelector('.card-front .card-content, .card-front');
     const backEl = document.querySelector('.card-back .card-content, .card-back');
     const titleEl = document.querySelector('.deck-title');
-    const progressEl = document.querySelector('.card-progress');
+    const subtitleEl = document.getElementById('deckSubtitle');
     
     if (frontEl) {
         frontEl.innerHTML = `<p class="card-text">${escapeHtml(data.card.front)}</p>`;
@@ -107,19 +111,17 @@ function displayCard(data) {
         backEl.innerHTML = `<p class="card-text">${escapeHtml(data.card.back)}</p>`;
     }
     
-    if (titleEl) {
-        titleEl.textContent = data.deckTitle || '';
+    if (titleEl && data.deckTitle) {
+        titleEl.textContent = data.deckTitle;
     }
     
-    if (progressEl && data.progress) {
-        const status = data.progress.status;
-        const statusLabels = {
-            'new': 'Nowa',
-            'learning': 'W nauce',
-            'known': 'Opanowana'
+    if (subtitleEl && data.deckLevel) {
+        const levelLabels = {
+            'beginner': 'Początkujący',
+            'intermediate': 'Średniozaawansowany',
+            'advanced': 'Zaawansowany'
         };
-        progressEl.textContent = statusLabels[status] || status;
-        progressEl.className = `card-progress status-${status}`;
+        subtitleEl.textContent = levelLabels[data.deckLevel] || '';
     }
     
     // Pokaż przyciski odpowiedzi
@@ -167,18 +169,20 @@ async function answerCard(answer) {
             // Pokaż feedback
             showFeedback(answer === 'know');
             
+            // Aktualizuj progres natychmiast po odpowiedzi
+            await loadDeckProgress();
+            
             // Załaduj następną kartę po krótkim opóźnieniu
             setTimeout(async () => {
                 await loadNextCard();
-                await loadDeckProgress();
-            }, 500);
+            }, 400);
         } else {
             showMessage('Błąd: ' + (result.error?.message || 'Nie udało się zapisać odpowiedzi'), 'error');
+            buttons.forEach(btn => btn.disabled = false);
         }
     } catch (error) {
         console.error('Error answering card:', error);
         showMessage('Błąd zapisywania odpowiedzi', 'error');
-    } finally {
         buttons.forEach(btn => btn.disabled = false);
     }
 }
@@ -242,17 +246,47 @@ function displayDeckProgress(data) {
  * Pokazuje komunikat o ukończeniu wszystkich kart
  */
 function showCompleted() {
-    const cardContainer = document.querySelector('.flashcard-container, .study-container');
+    const cardContainer = document.querySelector('.flashcard-container');
     if (cardContainer) {
         cardContainer.innerHTML = `
             <div class="completed-message">
-                <h2>🎉 Gratulacje!</h2>
-                <p>Przejrzałeś wszystkie karty w tym zestawie!</p>
-                <button class="btn-primary" onclick="window.location.reload()">Powtórz zestaw</button>
-                <button class="btn-secondary" onclick="window.history.back()">Wróć do klasy</button>
+                <div class="success-icon">🎉</div>
+                <h2>Gratulacje!</h2>
+                <p class="success-text">Opanowałeś wszystkie fiszki w tym zestawie!</p>
+                <p class="success-subtext">Świetna robota! Twój progres został zapisany.</p>
+                <div class="completed-actions">
+                    <button class="btn-primary" onclick="restartDeck()">Powtórz zestaw</button>
+                    <button class="btn-secondary" onclick="goBack()">Powrót do klasy</button>
+                </div>
             </div>
         `;
     }
+    
+    // Ukryj kontrolki
+    const controls = document.querySelector('.study-controls');
+    if (controls) {
+        controls.style.display = 'none';
+    }
+    
+    // Aktualizuj progres na 100%
+    const progressBar = document.querySelector('.progress-bar-fill');
+    if (progressBar) {
+        progressBar.style.width = '100%';
+    }
+}
+
+/**
+ * Resetuje progres i rozpoczyna od nowa
+ */
+function restartDeck() {
+    window.location.reload();
+}
+
+/**
+ * Powrót do poprzedniej strony (klasy)
+ */
+function goBack() {
+    window.history.back();
 }
 
 /**

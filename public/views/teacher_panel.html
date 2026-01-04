@@ -113,7 +113,7 @@
                 <h2>Dodaj nowy zestaw</h2>
                 <button class="close-btn" onclick="closeModal('createDeckModal')">&times;</button>
             </div>
-            <form id="createDeckForm">
+            <form id="createDeckForm" enctype="multipart/form-data">
                 <div class="input-group">
                     <label for="deckTitle">Tytuł zestawu</label>
                     <input type="text" id="deckTitle" name="title" required maxlength="200">
@@ -131,9 +131,13 @@
                     </select>
                 </div>
                 <div class="input-group">
-                    <label for="deckImageUrl">URL obrazka okładki (opcjonalnie)</label>
-                    <input type="url" id="deckImageUrl" name="imageUrl" placeholder="https://example.com/image.jpg">
-                    <small class="input-hint">Dodaj link do obrazka który będzie widoczny jako okładka zestawu</small>
+                    <label for="deckImage">Zdjęcie poglądowe (okładka zestawu)</label>
+                    <input type="file" id="deckImage" name="deckImage" accept="image/jpeg,image/png,image/gif,image/webp">
+                    <small class="input-hint">Akceptowane formaty: JPG, PNG, GIF, WEBP (max 2MB)</small>
+                    <div id="deckImagePreview" class="image-preview" style="display: none; margin-top: 0.5rem;">
+                        <img id="deckPreviewImg" src="" alt="Podgląd" style="max-width: 200px; max-height: 150px; border-radius: 8px;">
+                        <button type="button" class="btn-sm btn-secondary" onclick="clearDeckImagePreview()" style="margin-left: 0.5rem;">Usuń</button>
+                    </div>
                 </div>
                 <div class="input-group checkbox-group">
                     <label class="checkbox-label">

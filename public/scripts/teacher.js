@@ -1,22 +1,78 @@
 /**
  * Teacher module - panel nauczyciela
+ * Zestawy należą do nauczyciela i mogą być przypisane do wielu klas
  */
 let selectedClassId = null;
 let selectedDeckId = null;
+let teacherClasses = [];
 
 document.addEventListener('DOMContentLoaded', () => {
     initTeacherPanel();
 });
 
 async function initTeacherPanel() {
-    await loadTeacherClasses();
+    await Promise.all([
+        loadTeacherClasses(),
+        loadTeacherDecks()
+    ]);
     setupTabs();
     setupForms();
 }
 
-/**
- * Ładuje klasy nauczyciela
- */
+async function loadTeacherDecks() {
+    const container = document.getElementById('teacherDecks');
+    if (!container) return;
+    
+    try {
+        const result = await API.decks.listTeacherDecks();
+        
+        if (result.ok) {
+            renderTeacherDecks(result.data);
+        } else {
+            container.innerHTML = '<p class="error">Błąd ładowania zestawów</p>';
+        }
+    } catch (error) {
+        console.error('Error loading teacher decks:', error);
+        container.innerHTML = '<p class="error">Błąd ładowania</p>';
+    }
+}
+
+function renderTeacherDecks(decks) {
+    const container = document.getElementById('teacherDecks');
+    
+    if (!decks || decks.length === 0) {
+        container.innerHTML = '<p class="no-data">Nie masz jeszcze żadnych zestawów. Utwórz pierwszy!</p>';
+        return;
+    }
+    
+    container.innerHTML = decks.map(d => {
+        const imageHtml = d.imageUrl 
+            ? `<img src="${d.imageUrl}" alt="${escapeHtml(d.title)}">`
+            : '<div class="deck-placeholder-image">📚</div>';
+        
+        return `
+        <div class="teacher-deck-card" data-deck-id="${d.id}">
+            <div class="teacher-deck-image">
+                ${imageHtml}
+            </div>
+            <div class="teacher-deck-content">
+                <div class="teacher-deck-header">
+                    <h4>${escapeHtml(d.title)}</h4>
+                    ${d.isPublic ? '<span class="public-badge">🌍 Publiczny</span>' : ''}
+                </div>
+                <p class="teacher-deck-desc">${d.description || 'Brak opisu'}</p>
+                <div class="teacher-deck-meta">
+                    <span class="level level-${d.level}">${getLevelLabel(d.level)}</span>
+                    <span class="card-count">${d.cardCount || 0} fiszek</span>
+                </div>
+                <div class="teacher-deck-actions">
+                    <button class="btn-sm btn-primary" onclick="showDeckManageModal(${d.id}, '${escapeHtml(d.title)}', ${d.isPublic}, '${d.shareToken || ''}')">Zarządzaj</button>
+                </div>
+            </div>
+        </div>
+    `}).join('');
+}
+
 async function loadTeacherClasses() {
     const container = document.getElementById('teacherClasses');
     if (!container) return;
@@ -25,7 +81,8 @@ async function loadTeacherClasses() {
         const result = await API.classes.list();
         
         if (result.ok) {
-            renderTeacherClasses(result.data);
+            teacherClasses = result.data || [];
+            renderTeacherClasses(teacherClasses);
         } else {
             container.innerHTML = '<p class="error">Błąd ładowania klas</p>';
         }
@@ -46,7 +103,7 @@ function renderTeacherClasses(classes) {
     container.innerHTML = classes.map(c => `
         <div class="class-card" onclick="selectClass(${c.id}, '${escapeHtml(c.name)}', '${c.joinCode}')">
             <div class="class-card-header">
-                <span class="flag">${getLanguageFlag(c.language)}</span>
+                ${getLanguageFlag(c.language)}
                 <h3>${escapeHtml(c.name)}</h3>
             </div>
             <p class="join-code">Kod: <strong>${c.joinCode}</strong></p>
@@ -54,9 +111,6 @@ function renderTeacherClasses(classes) {
     `).join('');
 }
 
-/**
- * Wybiera klasę do edycji
- */
 async function selectClass(classId, className, joinCode) {
     selectedClassId = classId;
     
@@ -64,57 +118,47 @@ async function selectClass(classId, className, joinCode) {
     document.getElementById('classJoinCode').textContent = `Kod: ${joinCode}`;
     document.getElementById('selectedClassSection').style.display = 'block';
     
-    // Załaduj decki
-    await loadDecks(classId);
+    await loadClassDecks(classId);
 }
 
-/**
- * Ładuje decki dla klasy
- */
-async function loadDecks(classId) {
+async function loadClassDecks(classId) {
     const container = document.getElementById('decksList');
     
     try {
         const result = await API.decks.listByClass(classId);
         
         if (result.ok) {
-            renderDecks(result.data);
+            renderClassDecks(result.data);
         }
     } catch (error) {
-        console.error('Error loading decks:', error);
+        console.error('Error loading class decks:', error);
     }
 }
 
-function renderDecks(decks) {
+function renderClassDecks(decks) {
     const container = document.getElementById('decksList');
     
-    if (decks.length === 0) {
-        container.innerHTML = '<p class="no-data">Brak zestawów. Dodaj pierwszy!</p>';
+    if (!decks || decks.length === 0) {
+        container.innerHTML = '<p class="no-data">Brak zestawów przypisanych do tej klasy. Przypisz zestawy w sekcji "Moje zestawy".</p>';
         return;
     }
     
     container.innerHTML = decks.map(d => `
         <div class="deck-card">
             <div class="deck-info">
-                <h4>${escapeHtml(d.title)} ${d.isPublic ? '<span class="public-badge">🌍 Publiczny</span>' : ''}</h4>
+                <h4>${escapeHtml(d.title)}</h4>
                 <p>${d.description || 'Brak opisu'}</p>
                 <span class="level level-${d.level}">${getLevelLabel(d.level)}</span>
                 <span class="card-count">${d.cardCount || 0} fiszek</span>
-                ${d.isPublic ? `<span class="rating-info">⭐ ${(d.averageRating || 0).toFixed(1)} (${d.ratingsCount || 0})</span>` : ''}
             </div>
             <div class="deck-actions">
                 <button class="btn-sm btn-primary" onclick="showCardsManager(${d.id}, '${escapeHtml(d.title)}')">Zarządzaj fiszkami</button>
-                <button class="btn-sm btn-secondary" onclick="toggleDeckPublic(${d.id}, ${!d.isPublic})">${d.isPublic ? 'Ukryj' : 'Upublicznij'}</button>
-                ${d.isPublic && d.shareToken ? `<button class="btn-sm btn-secondary" onclick="copyShareLink('${d.shareToken}')">Kopiuj link</button>` : ''}
-                <button class="btn-sm btn-danger" onclick="deleteDeck(${d.id})">Usuń</button>
+                <button class="btn-sm btn-secondary" onclick="unassignDeckFromClass(${d.id})">Odepnij</button>
             </div>
         </div>
     `).join('');
 }
 
-/**
- * Pokazuje manager fiszek
- */
 async function showCardsManager(deckId, deckTitle) {
     selectedDeckId = deckId;
     
@@ -126,16 +170,19 @@ async function showCardsManager(deckId, deckTitle) {
                 ? '<p class="no-data">Brak fiszek</p>'
                 : result.data.map(c => `
                     <div class="card-item">
+                        ${c.imagePath ? `<img src="${c.imagePath}" alt="Obrazek" class="card-thumbnail" style="width: 50px; height: 50px; object-fit: cover; border-radius: 4px; margin-right: 10px;">` : ''}
                         <span class="card-front">${escapeHtml(c.front)}</span>
                         <span class="separator">→</span>
                         <span class="card-back">${escapeHtml(c.back)}</span>
                     </div>
                 `).join('');
             
-            document.getElementById('decksList').innerHTML = `
+            const decksContainer = document.getElementById('teacherDecks') || document.getElementById('decksList');
+            
+            decksContainer.innerHTML = `
                 <div class="cards-manager">
                     <div class="manager-header">
-                        <button class="btn-sm" onclick="loadDecks(${selectedClassId})">← Wróć</button>
+                        <button class="btn-sm" onclick="goBackFromCardsManager()">← Wróć</button>
                         <h3>Fiszki: ${deckTitle}</h3>
                         <button class="btn-primary btn-sm" onclick="showCreateCardModal()">+ Dodaj fiszkę</button>
                     </div>
@@ -148,9 +195,53 @@ async function showCardsManager(deckId, deckTitle) {
     }
 }
 
-/**
- * Zakładki
- */
+function goBackFromCardsManager() {
+    selectedDeckId = null;
+    loadTeacherDecks();
+    if (selectedClassId) {
+        loadClassDecks(selectedClassId);
+    }
+}
+
+async function showAssignClassesModal(deckId) {
+    document.getElementById('assignDeckId').value = deckId;
+    
+    try {
+        const deckResult = await API.decks.get(deckId);
+        const currentClassIds = deckResult.ok && deckResult.data.classIds ? deckResult.data.classIds : [];
+        
+        renderClassSelection('assignClassSelection', currentClassIds);
+    } catch (error) {
+        console.error('Error:', error);
+        renderClassSelection('assignClassSelection', []);
+    }
+    
+    document.getElementById('assignClassesModal').style.display = 'flex';
+}
+
+function renderClassSelection(containerId, selectedClassIds = []) {
+    const container = document.getElementById(containerId);
+    
+    if (teacherClasses.length === 0) {
+        container.innerHTML = '<p class="text-muted">Nie masz jeszcze żadnych klas.</p>';
+        return;
+    }
+    
+    container.innerHTML = teacherClasses.map(c => `
+        <label class="checkbox-label">
+            <input type="checkbox" name="classIds" value="${c.id}" 
+                   ${selectedClassIds.includes(c.id) ? 'checked' : ''}>
+            ${getLanguageFlag(c.language)} ${escapeHtml(c.name)}
+        </label>
+    `).join('');
+}
+
+function getSelectedClassIds(containerId) {
+    const container = document.getElementById(containerId);
+    const checkboxes = container.querySelectorAll('input[name="classIds"]:checked');
+    return Array.from(checkboxes).map(cb => parseInt(cb.value));
+}
+
 function setupTabs() {
     document.querySelectorAll('.tab').forEach(tab => {
         tab.addEventListener('click', () => {
@@ -161,7 +252,6 @@ function setupTabs() {
             const tabId = tab.dataset.tab + 'Tab';
             document.getElementById(tabId).style.display = 'block';
             
-            // Załaduj zawartość zakładki
             if (tab.dataset.tab === 'tasks' && selectedClassId) {
                 loadTasks(selectedClassId);
             } else if (tab.dataset.tab === 'members' && selectedClassId) {
@@ -171,9 +261,6 @@ function setupTabs() {
     });
 }
 
-/**
- * Ładuje zadania
- */
 async function loadTasks(classId) {
     const container = document.getElementById('tasksList');
     
@@ -186,9 +273,15 @@ async function loadTasks(classId) {
             } else {
                 container.innerHTML = result.data.map(t => `
                     <div class="task-item">
-                        <h4>${escapeHtml(t.title)}</h4>
-                        <p>${t.description || ''}</p>
-                        ${t.dueDate ? `<span class="due-date">Termin: ${new Date(t.dueDate).toLocaleDateString('pl-PL')}</span>` : ''}
+                        <div class="task-content">
+                            <h4>${escapeHtml(t.title)}</h4>
+                            <p>${t.description || ''}</p>
+                            ${t.dueDate ? `<span class="due-date">Termin: ${new Date(t.dueDate).toLocaleDateString('pl-PL')}</span>` : ''}
+                        </div>
+                        <div class="task-actions">
+                            <button class="btn-sm btn-danger" onclick="deleteTask(${classId}, ${t.id})">Usuń</button>
+                        </div>
+                    </div>
                     </div>
                 `).join('');
             }
@@ -198,9 +291,6 @@ async function loadTasks(classId) {
     }
 }
 
-/**
- * Ładuje członków klasy
- */
 async function loadMembers(classId) {
     const container = document.getElementById('membersList');
     
@@ -225,9 +315,6 @@ async function loadMembers(classId) {
     }
 }
 
-/**
- * Usuwa ucznia z klasy
- */
 async function removeMember(classId, studentId) {
     showConfirmModal(
         '👤 Usuń ucznia',
@@ -250,9 +337,28 @@ async function removeMember(classId, studentId) {
     );
 }
 
-/**
- * Usuwa klasę
- */
+async function deleteTask(classId, taskId) {
+    showConfirmModal(
+        '🗑️ Usuń zadanie',
+        'Czy na pewno chcesz usunąć to zadanie?',
+        async () => {
+            try {
+                const result = await API.classes.deleteTask(classId, taskId);
+                
+                if (result.ok) {
+                    await loadTasks(classId);
+                    showToast('Zadanie zostało usunięte', 'success');
+                } else {
+                    showToast('Błąd: ' + (result.error?.message || 'Nie udało się usunąć zadania'), 'error');
+                }
+            } catch (error) {
+                console.error('Error deleting task:', error);
+                showToast('Wystąpił błąd', 'error');
+            }
+        }
+    );
+}
+
 async function deleteClass() {
     if (!selectedClassId) {
         showToast('Wybierz najpierw klasę', 'error');
@@ -261,7 +367,7 @@ async function deleteClass() {
     
     showConfirmModal(
         '🗑️ Usuń klasę',
-        'Czy na pewno chcesz usunąć tę klasę? Wszystkie zestawy, fiszki i zadania zostaną trwale usunięte!',
+        'Czy na pewno chcesz usunąć tę klasę? Uczniowie stracą do niej dostęp.',
         async () => {
             try {
                 const result = await API.delete(`/api/classes/${selectedClassId}`);
@@ -282,11 +388,29 @@ async function deleteClass() {
     );
 }
 
-/**
- * Formularze
- */
+async function deleteDeck(deckId) {
+    showConfirmModal(
+        '🗑️ Usuń zestaw',
+        'Czy na pewno chcesz usunąć ten zestaw fiszek? Tej operacji nie można cofnąć.',
+        async () => {
+            try {
+                const result = await API.decks.delete(deckId);
+                
+                if (result.ok) {
+                    await loadTeacherDecks();
+                    showToast('Zestaw został usunięty', 'success');
+                } else {
+                    showToast('Błąd: ' + (result.error?.message || 'Nie udało się usunąć'), 'error');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showToast('Wystąpił błąd', 'error');
+            }
+        }
+    );
+}
+
 function setupForms() {
-    // Tworzenie klasy
     document.getElementById('createClassForm')?.addEventListener('submit', async (e) => {
         e.preventDefault();
         const form = e.target;
@@ -312,29 +436,41 @@ function setupForms() {
         }
     });
     
-    // Tworzenie decku
     document.getElementById('createDeckForm')?.addEventListener('submit', async (e) => {
         e.preventDefault();
         const form = e.target;
         
-        if (!selectedClassId) {
-            showToast('Wybierz najpierw klasę', 'error');
-            return;
-        }
-        
         try {
-            const result = await API.decks.create(selectedClassId, {
+            const imageFile = document.getElementById('deckImage')?.files[0];
+            let imageUrl = null;
+            
+            if (imageFile) {
+                const uploadResult = await uploadDeckImage(imageFile);
+                if (uploadResult.ok) {
+                    imageUrl = uploadResult.path;
+                } else {
+                    showToast('Błąd uploadu obrazka: ' + uploadResult.error, 'error');
+                    return;
+                }
+            }
+            
+            const classIds = getSelectedClassIds('deckClassSelection');
+            
+            const result = await API.decks.create({
                 title: form.title.value,
                 description: form.description.value,
                 level: form.level.value,
-                imageUrl: form.imageUrl?.value || null,
-                isPublic: form.isPublic?.checked || false
+                imageUrl: imageUrl,
+                isPublic: form.isPublic?.checked || false,
+                classIds: classIds
             });
             
             if (result.ok) {
                 closeModal('createDeckModal');
                 form.reset();
-                await loadDecks(selectedClassId);
+                clearDeckImagePreview();
+                await loadTeacherDecks();
+                
                 if (form.isPublic?.checked) {
                     showToast('Zestaw utworzony i udostępniony publicznie! 🌍', 'success');
                 } else {
@@ -349,7 +485,28 @@ function setupForms() {
         }
     });
     
-    // Tworzenie fiszki
+    document.getElementById('assignClassesForm')?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const deckId = document.getElementById('assignDeckId').value;
+        const classIds = getSelectedClassIds('assignClassSelection');
+        
+        try {
+            const result = await API.decks.assignToClasses(deckId, classIds);
+            
+            if (result.ok) {
+                closeModal('assignClassesModal');
+                await loadTeacherDecks();
+                showToast('Przypisanie zaktualizowane', 'success');
+            } else {
+                showToast('Błąd: ' + (result.error?.message || 'Nie udało się zaktualizować'), 'error');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            showToast('Wystąpił błąd', 'error');
+        }
+    });
+    
     document.getElementById('createCardForm')?.addEventListener('submit', async (e) => {
         e.preventDefault();
         const form = e.target;
@@ -369,7 +526,6 @@ function setupForms() {
                 closeModal('createCardModal');
                 form.reset();
                 showToast('Fiszka została dodana', 'success');
-                // Odśwież listę fiszek
                 const deck = await API.decks.get(selectedDeckId);
                 if (deck.ok) {
                     showCardsManager(selectedDeckId, deck.data.title);
@@ -383,7 +539,6 @@ function setupForms() {
         }
     });
     
-    // Tworzenie zadania
     document.getElementById('createTaskForm')?.addEventListener('submit', async (e) => {
         e.preventDefault();
         const form = e.target;
@@ -411,9 +566,8 @@ function setupForms() {
                 closeModal('createTaskModal');
                 form.reset();
                 showToast('Zadanie zostało dodane!', 'success');
-                // Odśwież widok klasy jeśli jest widoczny
                 if (selectedClassId) {
-                    await loadClassDetails(selectedClassId);
+                    await loadTasks(selectedClassId);
                 }
             } else {
                 showToast('Błąd: ' + (result.error?.message || 'Nie udało się dodać zadania'), 'error');
@@ -425,43 +579,12 @@ function setupForms() {
     });
 }
 
-/**
- * Usuwa deck
- */
-async function deleteDeck(deckId) {
-    showConfirmModal(
-        '🗑️ Usuń zestaw',
-        'Czy na pewno chcesz usunąć ten zestaw fiszek? Tej operacji nie można cofnąć.',
-        async () => {
-            try {
-                const result = await API.decks.delete(deckId);
-                
-                if (result.ok) {
-                    await loadDecks(selectedClassId);
-                    showToast('Zestaw został usunięty', 'success');
-                } else {
-                    showToast('Błąd: ' + (result.error?.message || 'Nie udało się usunąć'), 'error');
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                showToast('Wystąpił błąd', 'error');
-            }
-        }
-    );
-}
-
-/**
- * Modale
- */
 function showCreateClassModal() {
     document.getElementById('createClassModal').style.display = 'flex';
 }
 
 function showCreateDeckModal() {
-    if (!selectedClassId) {
-        showToast('Wybierz najpierw klasę', 'error');
-        return;
-    }
+    renderClassSelection('deckClassSelection', []);
     document.getElementById('createDeckModal').style.display = 'flex';
 }
 
@@ -479,15 +602,14 @@ async function showCreateTaskModal() {
         return;
     }
     
-    // Pobierz decki dla tej klasy i wypełnij select
     const deckSelect = document.getElementById('taskDeck');
     deckSelect.innerHTML = '<option value="">-- Ładowanie... --</option>';
     
     try {
         const result = await API.decks.listByClass(selectedClassId);
-        if (result.ok && result.data?.decks?.length > 0) {
+        if (result.ok && result.data?.length > 0) {
             deckSelect.innerHTML = '<option value="">-- Wybierz zestaw --</option>';
-            result.data.decks.forEach(deck => {
+            result.data.forEach(deck => {
                 const option = document.createElement('option');
                 option.value = deck.id;
                 option.textContent = deck.title;
@@ -495,7 +617,7 @@ async function showCreateTaskModal() {
             });
         } else {
             deckSelect.innerHTML = '<option value="">-- Brak zestawów --</option>';
-            showToast('Najpierw dodaj zestawy fiszek', 'error');
+            showToast('Najpierw przypisz zestawy do tej klasy', 'error');
             return;
         }
     } catch (error) {
@@ -504,13 +626,11 @@ async function showCreateTaskModal() {
         return;
     }
     
-    // Ustaw domyślny termin na za tydzień
     const nextWeek = new Date();
     nextWeek.setDate(nextWeek.getDate() + 7);
     nextWeek.setHours(23, 59);
     document.getElementById('taskDueDate').value = nextWeek.toISOString().slice(0, 16);
     
-    // Wyczyść formularz
     document.getElementById('taskTitle').value = '';
     document.getElementById('taskDescription').value = '';
     
@@ -521,11 +641,7 @@ function closeModal(modalId) {
     document.getElementById(modalId).style.display = 'none';
 }
 
-/**
- * Przełącza status publiczny decku
- */
 async function toggleDeckPublic(deckId, makePublic) {
-    const action = makePublic ? 'upublicznić' : 'ukryć';
     const message = makePublic 
         ? 'Zestaw będzie widoczny dla wszystkich użytkowników w sekcji Społeczność. Czy kontynuować?'
         : 'Zestaw przestanie być widoczny publicznie. Czy kontynuować?';
@@ -540,7 +656,7 @@ async function toggleDeckPublic(deckId, makePublic) {
                 });
                 
                 if (result.ok) {
-                    await loadDecks(selectedClassId);
+                    await loadTeacherDecks();
                     showToast(makePublic ? 'Zestaw został upubliczniony!' : 'Zestaw został ukryty.', 'success');
                 } else {
                     showToast('Błąd: ' + (result.error?.message || 'Nie udało się zmienić statusu'), 'error');
@@ -553,11 +669,8 @@ async function toggleDeckPublic(deckId, makePublic) {
     );
 }
 
-/**
- * Kopiuje link do udostępniania
- */
 function copyShareLink(shareToken) {
-    const url = `${window.location.origin}/community?share=${shareToken}`;
+    const url = `${window.location.origin}/public-deck?token=${shareToken}`;
     navigator.clipboard.writeText(url).then(() => {
         showToast('Link skopiowany do schowka!', 'success');
     }).catch(() => {
@@ -565,26 +678,142 @@ function copyShareLink(shareToken) {
     });
 }
 
-// Zamykanie modali kliknięciem poza
-document.querySelectorAll('.modal').forEach(modal => {
-    modal.addEventListener('click', (e) => {
-        if (e.target === modal) {
-            modal.style.display = 'none';
+async function unassignDeckFromClass(deckId) {
+    if (!selectedClassId) {
+        showToast('Nie wybrano klasy', 'error');
+        return;
+    }
+    
+    showConfirmModal(
+        '📌 Odepnij zestaw',
+        'Czy na pewno chcesz odpiąć ten zestaw od klasy? Zestaw nie zostanie usunięty, tylko odpięty od tej klasy.',
+        async () => {
+            try {
+                // Pobierz aktualne przypisania
+                const deckResult = await API.decks.get(deckId);
+                if (!deckResult.ok) {
+                    showToast('Błąd: nie można pobrać danych zestawu', 'error');
+                    return;
+                }
+                
+                const currentClassIds = deckResult.data.classIds || [];
+                const newClassIds = currentClassIds.filter(id => id !== selectedClassId);
+                
+                const result = await API.decks.assignToClasses(deckId, newClassIds);
+                
+                if (result.ok) {
+                    await loadClassDecks(selectedClassId);
+                    await loadTeacherDecks();
+                    showToast('Zestaw został odpięty od klasy', 'success');
+                } else {
+                    showToast('Błąd: ' + (result.error?.message || 'Nie udało się odpiąć zestawu'), 'error');
+                }
+            } catch (error) {
+                console.error('Error unassigning deck:', error);
+                showToast('Wystąpił błąd', 'error');
+            }
         }
-    });
+    );
+}
+
+async function uploadDeckImage(file) {
+    const maxSize = 2 * 1024 * 1024;
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+    
+    if (!allowedTypes.includes(file.type)) {
+        return { ok: false, error: 'Nieprawidłowy format pliku. Dozwolone: JPG, PNG, GIF, WEBP' };
+    }
+    
+    if (file.size > maxSize) {
+        return { ok: false, error: 'Plik jest za duży. Maksymalny rozmiar: 2MB' };
+    }
+    
+    const formData = new FormData();
+    formData.append('image', file);
+    
+    try {
+        const response = await fetch('/api/upload/deck-image', {
+            method: 'POST',
+            body: formData
+        });
+        
+        const result = await response.json();
+        
+        if (result.ok) {
+            return { ok: true, path: result.data.path };
+        } else {
+            return { ok: false, error: result.error?.message || 'Błąd uploadu' };
+        }
+    } catch (error) {
+        console.error('Upload error:', error);
+        return { ok: false, error: 'Błąd połączenia' };
+    }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    const deckImageInput = document.getElementById('deckImage');
+    if (deckImageInput) {
+        deckImageInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    document.getElementById('deckPreviewImg').src = event.target.result;
+                    document.getElementById('deckImagePreview').style.display = 'flex';
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+    }
 });
 
-/**
- * Helpers
- */
+function clearDeckImagePreview() {
+    const imageInput = document.getElementById('deckImage');
+    const imagePreview = document.getElementById('deckImagePreview');
+    const previewImg = document.getElementById('deckPreviewImg');
+    
+    if (imageInput) imageInput.value = '';
+    if (previewImg) previewImg.src = '';
+    if (imagePreview) imagePreview.style.display = 'none';
+}
+
 function getLanguageFlag(lang) {
-    if (!lang) return '📚';
+    if (!lang) return '<span class="lang-badge">🌐</span>';
     const language = lang.toLowerCase();
-    const flags = {
-        'de': '🇩🇪', 'en': '🇬🇧', 'es': '🇪🇸', 'fr': '🇫🇷',
-        'it': '🇮🇹', 'ru': '🇷🇺', 'pl': '🇵🇱', 'ja': '🇯🇵', 'zh': '🇨🇳'
+    
+    // Flagi jako emoji i pełne nazwy języków
+    const languageInfo = {
+        'de': { flag: '🇩🇪', name: 'Niemiecki' },
+        'en': { flag: '🇬🇧', name: 'Angielski' },
+        'es': { flag: '🇪🇸', name: 'Hiszpański' },
+        'fr': { flag: '🇫🇷', name: 'Francuski' },
+        'it': { flag: '🇮🇹', name: 'Włoski' },
+        'ru': { flag: '🇷🇺', name: 'Rosyjski' },
+        'pl': { flag: '🇵🇱', name: 'Polski' },
+        'ja': { flag: '🇯🇵', name: 'Japoński' },
+        'zh': { flag: '🇨🇳', name: 'Chiński' },
+        'pt': { flag: '🇵🇹', name: 'Portugalski' },
+        'nl': { flag: '🇳🇱', name: 'Niderlandzki' },
+        'sv': { flag: '🇸🇪', name: 'Szwedzki' },
+        'no': { flag: '🇳🇴', name: 'Norweski' },
+        'da': { flag: '🇩🇰', name: 'Duński' },
+        'fi': { flag: '🇫🇮', name: 'Fiński' },
+        'cs': { flag: '🇨🇿', name: 'Czeski' },
+        'sk': { flag: '🇸🇰', name: 'Słowacki' },
+        'uk': { flag: '🇺🇦', name: 'Ukraiński' },
+        'el': { flag: '🇬🇷', name: 'Grecki' },
+        'tr': { flag: '🇹🇷', name: 'Turecki' },
+        'ar': { flag: '🇸🇦', name: 'Arabski' },
+        'ko': { flag: '🇰🇷', name: 'Koreański' },
+        'hi': { flag: '🇮🇳', name: 'Hindi' }
     };
-    return flags[language] || '📚';
+    
+    const info = languageInfo[language];
+    if (info) {
+        return `<span class="lang-flag" title="${info.name}">${info.flag}</span><span class="lang-name">${info.name}</span>`;
+    }
+    
+    return `<span class="lang-badge">${lang.toUpperCase()}</span>`;
 }
 
 function getLevelLabel(level) {
@@ -603,7 +832,261 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 
-// Alias dla przycisku w HTML
 function deleteSelectedClass() {
     deleteClass();
 }
+
+// Modal zarządzania zestawem
+let managingDeckId = null;
+
+async function showDeckManageModal(deckId, deckTitle, isPublic, shareToken) {
+    managingDeckId = deckId;
+    
+    // Utwórz modal jeśli nie istnieje
+    let modal = document.getElementById('deckManageModal');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'deckManageModal';
+        modal.className = 'modal';
+        modal.innerHTML = `
+            <div class="modal-content modal-large">
+                <div class="modal-header">
+                    <h2 id="manageDeckTitle">Zarządzaj zestawem</h2>
+                    <button class="close-btn" onclick="closeModal('deckManageModal')">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="manage-tabs">
+                        <button class="manage-tab active" data-tab="cards">Fiszki</button>
+                        <button class="manage-tab" data-tab="classes">Klasy</button>
+                        <button class="manage-tab" data-tab="sharing">Udostępnianie</button>
+                    </div>
+                    
+                    <div class="manage-content" id="cardsContent">
+                        <div class="cards-manager-header">
+                            <button class="btn-primary btn-sm" onclick="showCreateCardModal()">+ Dodaj fiszkę</button>
+                        </div>
+                        <div id="manageCardsList" class="cards-list">
+                            <p class="loading">Ładowanie fiszek...</p>
+                        </div>
+                    </div>
+                    
+                    <div class="manage-content" id="classesContent" style="display: none;">
+                        <p class="manage-info">Przypisz zestaw do klas. Uczniowie w tych klasach będą mogli się z niego uczyć.</p>
+                        <div id="manageClassSelection" class="class-selection">
+                            <p class="text-muted">Ładowanie klas...</p>
+                        </div>
+                        <div class="modal-actions" style="margin-top: 1rem;">
+                            <button class="btn-primary" onclick="saveClassAssignment()">Zapisz przypisania</button>
+                        </div>
+                    </div>
+                    
+                    <div class="manage-content" id="sharingContent" style="display: none;">
+                        <div class="sharing-options">
+                            <div class="sharing-option">
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="manageIsPublic">
+                                    Udostępnij społeczności
+                                </label>
+                                <p class="option-desc">Zestaw będzie widoczny dla wszystkich użytkowników.</p>
+                            </div>
+                            <div id="shareLinkSection" style="display: none;">
+                                <label>Link do udostępnienia:</label>
+                                <div class="share-link-row">
+                                    <input type="text" id="manageShareLink" readonly>
+                                    <button class="btn-secondary btn-sm" onclick="copyManageShareLink()">Kopiuj</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-actions" style="margin-top: 1rem;">
+                            <button class="btn-primary" onclick="saveSharingSettings()">Zapisz ustawienia</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer danger-zone">
+                    <button class="btn-danger" onclick="deleteDeckFromModal()">Usuń zestaw</button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modal);
+        
+        // Setup tabs
+        modal.querySelectorAll('.manage-tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                modal.querySelectorAll('.manage-tab').forEach(t => t.classList.remove('active'));
+                modal.querySelectorAll('.manage-content').forEach(c => c.style.display = 'none');
+                tab.classList.add('active');
+                const contentId = tab.dataset.tab + 'Content';
+                document.getElementById(contentId).style.display = 'block';
+            });
+        });
+    }
+    
+    document.getElementById('manageDeckTitle').textContent = `Zarządzaj: ${deckTitle}`;
+    
+    // Ustaw public checkbox
+    document.getElementById('manageIsPublic').checked = isPublic;
+    
+    // Ustaw link
+    const shareLinkSection = document.getElementById('shareLinkSection');
+    if (isPublic && shareToken) {
+        shareLinkSection.style.display = 'block';
+        document.getElementById('manageShareLink').value = `${window.location.origin}/public-deck?token=${shareToken}`;
+    } else {
+        shareLinkSection.style.display = 'none';
+    }
+    
+    // Załaduj fiszki
+    await loadManageCards(deckId);
+    
+    // Załaduj klasy
+    await loadManageClasses(deckId);
+    
+    modal.style.display = 'flex';
+}
+
+async function loadManageCards(deckId) {
+    const container = document.getElementById('manageCardsList');
+    try {
+        const result = await API.decks.cards(deckId);
+        if (result.ok) {
+            if (result.data.length === 0) {
+                container.innerHTML = '<p class="no-data">Brak fiszek. Dodaj pierwszą!</p>';
+            } else {
+                container.innerHTML = result.data.map(c => `
+                    <div class="card-item">
+                        ${c.imagePath ? `<img src="${c.imagePath}" alt="" class="card-thumbnail">` : ''}
+                        <span class="card-front">${escapeHtml(c.front)}</span>
+                        <span class="separator">→</span>
+                        <span class="card-back">${escapeHtml(c.back)}</span>
+                        <button class="btn-sm btn-danger" onclick="deleteCard(${c.id})">✕</button>
+                    </div>
+                `).join('');
+            }
+        }
+    } catch (error) {
+        container.innerHTML = '<p class="error">Błąd ładowania fiszek</p>';
+    }
+}
+
+async function loadManageClasses(deckId) {
+    const container = document.getElementById('manageClassSelection');
+    
+    try {
+        const deckResult = await API.decks.get(deckId);
+        const currentClassIds = deckResult.ok && deckResult.data.classIds ? deckResult.data.classIds : [];
+        
+        if (teacherClasses.length === 0) {
+            container.innerHTML = '<p class="text-muted">Nie masz jeszcze żadnych klas.</p>';
+            return;
+        }
+        
+        container.innerHTML = teacherClasses.map(c => `
+            <label class="checkbox-label">
+                <input type="checkbox" name="manageClassIds" value="${c.id}" 
+                       ${currentClassIds.includes(c.id) ? 'checked' : ''}>
+                ${getLanguageFlag(c.language)} ${escapeHtml(c.name)}
+            </label>
+        `).join('');
+    } catch (error) {
+        container.innerHTML = '<p class="error">Błąd ładowania klas</p>';
+    }
+}
+
+async function saveClassAssignment() {
+    if (!managingDeckId) return;
+    
+    const checkboxes = document.querySelectorAll('input[name="manageClassIds"]:checked');
+    const classIds = Array.from(checkboxes).map(cb => parseInt(cb.value));
+    
+    try {
+        const result = await API.decks.assignToClasses(managingDeckId, classIds);
+        if (result.ok) {
+            showToast('Przypisania zostały zapisane', 'success');
+            await loadTeacherDecks();
+        } else {
+            showToast('Błąd: ' + (result.error?.message || 'Nie udało się zapisać'), 'error');
+        }
+    } catch (error) {
+        showToast('Wystąpił błąd', 'error');
+    }
+}
+
+async function saveSharingSettings() {
+    if (!managingDeckId) return;
+    
+    const isPublic = document.getElementById('manageIsPublic').checked;
+    
+    try {
+        const result = await API.put(`/api/decks/${managingDeckId}`, { isPublic });
+        if (result.ok) {
+            showToast(isPublic ? 'Zestaw został upubliczniony!' : 'Zestaw został ukryty.', 'success');
+            closeModal('deckManageModal');
+            await loadTeacherDecks();
+        } else {
+            showToast('Błąd: ' + (result.error?.message || 'Nie udało się zapisać'), 'error');
+        }
+    } catch (error) {
+        showToast('Wystąpił błąd', 'error');
+    }
+}
+
+function copyManageShareLink() {
+    const input = document.getElementById('manageShareLink');
+    navigator.clipboard.writeText(input.value).then(() => {
+        showToast('Link skopiowany!', 'success');
+    });
+}
+
+async function deleteCard(cardId) {
+    if (!managingDeckId) return;
+    
+    showConfirmModal(
+        '🗑️ Usuń fiszkę',
+        'Czy na pewno chcesz usunąć tę fiszkę?',
+        async () => {
+            try {
+                const result = await API.delete(`/api/decks/${managingDeckId}/cards/${cardId}`);
+                if (result.ok) {
+                    await loadManageCards(managingDeckId);
+                    await loadTeacherDecks();
+                    showToast('Fiszka została usunięta', 'success');
+                } else {
+                    showToast('Błąd usuwania fiszki', 'error');
+                }
+            } catch (error) {
+                showToast('Wystąpił błąd', 'error');
+            }
+        }
+    );
+}
+
+function deleteDeckFromModal() {
+    if (!managingDeckId) return;
+    
+    showConfirmModal(
+        '🗑️ Usuń zestaw',
+        'Czy na pewno chcesz usunąć ten zestaw fiszek? Tej operacji nie można cofnąć.',
+        async () => {
+            try {
+                const result = await API.decks.delete(managingDeckId);
+                if (result.ok) {
+                    closeModal('deckManageModal');
+                    await loadTeacherDecks();
+                    showToast('Zestaw został usunięty', 'success');
+                } else {
+                    showToast('Błąd: ' + (result.error?.message || 'Nie udało się usunąć'), 'error');
+                }
+            } catch (error) {
+                showToast('Wystąpił błąd', 'error');
+            }
+        }
+    );
+}
+
+document.querySelectorAll('.modal').forEach(modal => {
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            modal.style.display = 'none';
+        }
+    });
+});

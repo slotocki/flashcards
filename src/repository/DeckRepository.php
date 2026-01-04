@@ -17,19 +17,19 @@ class DeckRepository extends Repository
     }
 
     /**
-     * Tworzy nowy deck
+     * Tworzy nowy deck (należy do nauczyciela)
      */
-    public function createDeck(int $classId, string $title, ?string $description = null, string $level = 'beginner', ?string $imageUrl = null, bool $isPublic = false): int
+    public function createDeck(int $teacherId, string $title, ?string $description = null, string $level = 'beginner', ?string $imageUrl = null, bool $isPublic = false): int
     {
         $shareToken = $isPublic ? $this->generateShareToken() : null;
         
         $stmt = $this->database->connect()->prepare('
-            INSERT INTO decks (class_id, title, description, level, image_url, is_public, share_token)
-            VALUES (:class_id, :title, :description, :level, :image_url, :is_public, :share_token)
+            INSERT INTO decks (teacher_id, title, description, level, image_url, is_public, share_token)
+            VALUES (:teacher_id, :title, :description, :level, :image_url, :is_public, :share_token)
             RETURNING id
         ');
         
-        $stmt->bindParam(':class_id', $classId, PDO::PARAM_INT);
+        $stmt->bindParam(':teacher_id', $teacherId, PDO::PARAM_INT);
         $stmt->bindParam(':title', $title, PDO::PARAM_STR);
         $stmt->bindParam(':description', $description, PDO::PARAM_STR);
         $stmt->bindParam(':level', $level, PDO::PARAM_STR);
@@ -40,6 +40,123 @@ class DeckRepository extends Repository
         $stmt->execute();
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
         return (int) $result['id'];
+    }
+    
+    /**
+     * Przypisuje deck do klasy
+     */
+    public function assignDeckToClass(int $deckId, int $classId): bool
+    {
+        $stmt = $this->database->connect()->prepare('
+            INSERT INTO class_decks (deck_id, class_id) 
+            VALUES (:deck_id, :class_id)
+            ON CONFLICT (deck_id, class_id) DO NOTHING
+        ');
+        $stmt->bindParam(':deck_id', $deckId, PDO::PARAM_INT);
+        $stmt->bindParam(':class_id', $classId, PDO::PARAM_INT);
+        return $stmt->execute();
+    }
+    
+    /**
+     * Usuwa przypisanie decku do klasy
+     */
+    public function unassignDeckFromClass(int $deckId, int $classId): bool
+    {
+        $stmt = $this->database->connect()->prepare('
+            DELETE FROM class_decks WHERE deck_id = :deck_id AND class_id = :class_id
+        ');
+        $stmt->bindParam(':deck_id', $deckId, PDO::PARAM_INT);
+        $stmt->bindParam(':class_id', $classId, PDO::PARAM_INT);
+        return $stmt->execute();
+    }
+    
+    /**
+     * Pobiera klasy do których jest przypisany deck
+     */
+    public function getDeckClasses(int $deckId): array
+    {
+        $stmt = $this->database->connect()->prepare('
+            SELECT c.id, c.name, c.language
+            FROM classes c
+            JOIN class_decks cd ON c.id = cd.class_id
+            WHERE cd.deck_id = :deck_id
+            ORDER BY c.name
+        ');
+        $stmt->bindParam(':deck_id', $deckId, PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+    
+    /**
+     * Pobiera wszystkie zestawy nauczyciela
+     */
+    public function getTeacherDecks(int $teacherId): array
+    {
+        $stmt = $this->database->connect()->prepare("
+            SELECT d.*, 
+                   COUNT(DISTINCT c.id) as card_count,
+                   COALESCE(AVG(r.rating), 0) as average_rating,
+                   COUNT(DISTINCT r.id) as ratings_count,
+                   ARRAY_AGG(DISTINCT cl.name) FILTER (WHERE cl.name IS NOT NULL) as class_names,
+                   ARRAY_AGG(DISTINCT cl.id) FILTER (WHERE cl.id IS NOT NULL) as class_ids
+            FROM decks d
+            LEFT JOIN cards c ON d.id = c.deck_id
+            LEFT JOIN deck_ratings r ON d.id = r.deck_id
+            LEFT JOIN class_decks cd ON d.id = cd.deck_id
+            LEFT JOIN classes cl ON cd.class_id = cl.id
+            WHERE d.teacher_id = :teacher_id
+            GROUP BY d.id
+            ORDER BY d.created_at DESC
+        ");
+        $stmt->bindParam(':teacher_id', $teacherId, PDO::PARAM_INT);
+        $stmt->execute();
+        
+        return array_map(function($row) {
+            // Parsowanie PostgreSQL array
+            $classNames = [];
+            $classIds = [];
+            if (!empty($row['class_names']) && $row['class_names'] !== '{}') {
+                $classNames = $this->parsePostgresArray($row['class_names']);
+            }
+            if (!empty($row['class_ids']) && $row['class_ids'] !== '{}') {
+                $classIds = array_map('intval', $this->parsePostgresArray($row['class_ids']));
+            }
+            
+            return [
+                'id' => (int) $row['id'],
+                'title' => $row['title'],
+                'description' => $row['description'],
+                'level' => $row['level'],
+                'imageUrl' => $row['image_url'],
+                'isPublic' => (bool) $row['is_public'],
+                'shareToken' => $row['share_token'],
+                'cardCount' => (int) $row['card_count'],
+                'averageRating' => (float) $row['average_rating'],
+                'ratingsCount' => (int) $row['ratings_count'],
+                'viewsCount' => (int) $row['views_count'],
+                'classNames' => $classNames,
+                'classIds' => $classIds,
+                'createdAt' => $row['created_at']
+            ];
+        }, $stmt->fetchAll(PDO::FETCH_ASSOC));
+    }
+    
+    /**
+     * Parsuje PostgreSQL array do PHP array
+     */
+    private function parsePostgresArray(string $pgArray): array
+    {
+        $pgArray = trim($pgArray, '{}');
+        if (empty($pgArray)) {
+            return [];
+        }
+        // Obsługa wartości w cudzysłowach
+        preg_match_all('/"([^"]*)"|\b([^,]+)/', $pgArray, $matches);
+        $result = [];
+        foreach ($matches[0] as $match) {
+            $result[] = trim($match, '"');
+        }
+        return $result;
     }
 
     /**
@@ -60,15 +177,13 @@ class DeckRepository extends Repository
                    COUNT(DISTINCT c.id) as card_count,
                    COALESCE(AVG(r.rating), 0) as average_rating,
                    COUNT(DISTINCT r.id) as ratings_count,
-                   cl.name as class_name,
                    CONCAT(u.firstname, ' ', u.lastname) as teacher_name
             FROM decks d
             LEFT JOIN cards c ON d.id = c.deck_id
             LEFT JOIN deck_ratings r ON d.id = r.deck_id
-            LEFT JOIN classes cl ON d.class_id = cl.id
-            LEFT JOIN users u ON cl.teacher_id = u.id
+            LEFT JOIN users u ON d.teacher_id = u.id
             WHERE d.id = :id
-            GROUP BY d.id, cl.name, u.firstname, u.lastname
+            GROUP BY d.id, u.firstname, u.lastname
         ");
         $stmt->bindParam(':id', $id, PDO::PARAM_INT);
         $stmt->execute();
@@ -91,15 +206,13 @@ class DeckRepository extends Repository
                    COUNT(DISTINCT c.id) as card_count,
                    COALESCE(AVG(r.rating), 0) as average_rating,
                    COUNT(DISTINCT r.id) as ratings_count,
-                   cl.name as class_name,
                    CONCAT(u.firstname, ' ', u.lastname) as teacher_name
             FROM decks d
             LEFT JOIN cards c ON d.id = c.deck_id
             LEFT JOIN deck_ratings r ON d.id = r.deck_id
-            LEFT JOIN classes cl ON d.class_id = cl.id
-            LEFT JOIN users u ON cl.teacher_id = u.id
+            LEFT JOIN users u ON d.teacher_id = u.id
             WHERE d.share_token = :token AND d.is_public = true
-            GROUP BY d.id, cl.name, u.firstname, u.lastname
+            GROUP BY d.id, u.firstname, u.lastname
         ");
         $stmt->bindParam(':token', $token, PDO::PARAM_STR);
         $stmt->execute();
@@ -128,7 +241,7 @@ class DeckRepository extends Repository
     }
 
     /**
-     * Pobiera decki dla klasy
+     * Pobiera decki przypisane do klasy (przez tabelę class_decks)
      */
     public function getDecksByClassId(int $classId): array
     {
@@ -136,12 +249,15 @@ class DeckRepository extends Repository
             SELECT d.*, 
                    COUNT(DISTINCT c.id) as card_count,
                    COALESCE(AVG(r.rating), 0) as average_rating,
-                   COUNT(DISTINCT r.id) as ratings_count
+                   COUNT(DISTINCT r.id) as ratings_count,
+                   u.firstname || \' \' || u.lastname as teacher_name
             FROM decks d
+            JOIN class_decks cd ON d.id = cd.deck_id
             LEFT JOIN cards c ON d.id = c.deck_id
             LEFT JOIN deck_ratings r ON d.id = r.deck_id
-            WHERE d.class_id = :class_id
-            GROUP BY d.id
+            LEFT JOIN users u ON d.teacher_id = u.id
+            WHERE cd.class_id = :class_id
+            GROUP BY d.id, u.firstname, u.lastname
             ORDER BY d.created_at DESC
         ');
         $stmt->bindParam(':class_id', $classId, PDO::PARAM_INT);
@@ -149,7 +265,9 @@ class DeckRepository extends Repository
         
         $decks = [];
         while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-            $decks[] = $this->mapRowToDeck($row)->toArray();
+            $deckArray = $this->mapRowToDeck($row)->toArray();
+            $deckArray['teacherName'] = $row['teacher_name'];
+            $decks[] = $deckArray;
         }
         return $decks;
     }
@@ -168,7 +286,8 @@ class DeckRepository extends Repository
         
         $searchCondition = '';
         if (!empty($search)) {
-            $searchCondition = 'AND (LOWER(d.title) LIKE LOWER(:search) OR LOWER(d.description) LIKE LOWER(:search) OR LOWER(cl.name) LIKE LOWER(:search))';
+            // Wyszukiwanie po nazwie zestawu i opisie
+            $searchCondition = 'AND (LOWER(d.title) LIKE LOWER(:search) OR LOWER(d.description) LIKE LOWER(:search))';
         }
         
         $stmt = $this->database->connect()->prepare("
@@ -176,16 +295,13 @@ class DeckRepository extends Repository
                    COUNT(DISTINCT c.id) as card_count,
                    COALESCE(AVG(r.rating), 0) as average_rating,
                    COUNT(DISTINCT r.id) as ratings_count,
-                   cl.name as class_name,
-                   cl.language as class_language,
                    CONCAT(u.firstname, ' ', u.lastname) as teacher_name
             FROM decks d
             LEFT JOIN cards c ON d.id = c.deck_id
             LEFT JOIN deck_ratings r ON d.id = r.deck_id
-            LEFT JOIN classes cl ON d.class_id = cl.id
-            LEFT JOIN users u ON cl.teacher_id = u.id
+            LEFT JOIN users u ON d.teacher_id = u.id
             WHERE d.is_public = true {$searchCondition}
-            GROUP BY d.id, cl.name, cl.language, u.firstname, u.lastname
+            GROUP BY d.id, u.firstname, u.lastname
             ORDER BY {$orderBy}
             LIMIT :limit OFFSET :offset
         ");
@@ -202,7 +318,6 @@ class DeckRepository extends Repository
         while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
             $deck = $this->mapRowToDeck($row);
             $deckArray = $deck->toArray();
-            $deckArray['language'] = $row['class_language'] ?? null;
             $decks[] = $deckArray;
         }
         return $decks;
@@ -215,13 +330,13 @@ class DeckRepository extends Repository
     {
         $searchCondition = '';
         if (!empty($search)) {
-            $searchCondition = 'AND (LOWER(d.title) LIKE LOWER(:search) OR LOWER(d.description) LIKE LOWER(:search) OR LOWER(cl.name) LIKE LOWER(:search))';
+            // Wyszukiwanie po nazwie zestawu i opisie
+            $searchCondition = 'AND (LOWER(d.title) LIKE LOWER(:search) OR LOWER(d.description) LIKE LOWER(:search))';
         }
         
         $stmt = $this->database->connect()->prepare("
             SELECT COUNT(DISTINCT d.id) as total
             FROM decks d
-            LEFT JOIN classes cl ON d.class_id = cl.id
             WHERE d.is_public = true {$searchCondition}
         ");
         
@@ -244,19 +359,16 @@ class DeckRepository extends Repository
                    COUNT(DISTINCT c.id) as card_count,
                    COALESCE(AVG(r.rating), 0) as average_rating,
                    COUNT(DISTINCT r.id) as ratings_count,
-                   cl.name as class_name,
-                   cl.language as class_language,
                    CONCAT(u.firstname, ' ', u.lastname) as teacher_name,
-                   cs.subscribed_at
+                   cs.created_at as subscribed_at
             FROM community_subscriptions cs
             JOIN decks d ON cs.deck_id = d.id
             LEFT JOIN cards c ON d.id = c.deck_id
             LEFT JOIN deck_ratings r ON d.id = r.deck_id
-            LEFT JOIN classes cl ON d.class_id = cl.id
-            LEFT JOIN users u ON cl.teacher_id = u.id
+            LEFT JOIN users u ON d.teacher_id = u.id
             WHERE cs.user_id = :user_id AND d.is_public = true
-            GROUP BY d.id, cl.name, cl.language, u.firstname, u.lastname, cs.subscribed_at
-            ORDER BY cs.subscribed_at DESC
+            GROUP BY d.id, u.firstname, u.lastname, cs.created_at
+            ORDER BY cs.created_at DESC
         ");
         $stmt->bindParam(':user_id', $userId, PDO::PARAM_INT);
         $stmt->execute();
@@ -265,7 +377,6 @@ class DeckRepository extends Repository
         while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
             $deck = $this->mapRowToDeck($row);
             $deckArray = $deck->toArray();
-            $deckArray['language'] = $row['class_language'] ?? null;
             $deckArray['subscribedAt'] = $row['subscribed_at'];
             $decks[] = $deckArray;
         }
@@ -511,7 +622,8 @@ class DeckRepository extends Repository
     {
         return new Deck(
             (int) $row['id'],
-            (int) $row['class_id'],
+            (int) ($row['teacher_id'] ?? 0),
+            isset($row['class_id']) ? (int) $row['class_id'] : null,
             $row['title'],
             $row['description'] ?? null,
             $row['level'] ?? 'beginner',

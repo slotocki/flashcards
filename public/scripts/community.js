@@ -303,7 +303,7 @@ function renderDeckDetails(deck) {
     
     // Link do udostępniania
     if (deck.shareToken) {
-        const shareUrl = `${window.location.origin}/community?share=${deck.shareToken}`;
+        const shareUrl = `${window.location.origin}/public-deck?token=${deck.shareToken}`;
         document.getElementById('shareLinkInput').value = shareUrl;
     }
     

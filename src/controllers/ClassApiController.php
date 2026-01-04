@@ -268,6 +268,37 @@ class ClassApiController extends ApiController
     }
     
     /**
+     * DELETE /api/classes/{classId}/tasks/{taskId} - usuwanie zadania
+     */
+    public function deleteTask(int $classId, int $taskId): void
+    {
+        $this->requireMethod('DELETE');
+        $this->requireAuth();
+        
+        $class = $this->classRepository->getClassById($classId);
+        
+        if (!$class) {
+            $this->error('NOT_FOUND', 'Klasa nie istnieje', 404);
+        }
+        
+        // Sprawdź czy użytkownik jest właścicielem lub adminem
+        $userId = $this->getUserId();
+        $role = $this->getUserRole();
+        
+        if ($role !== 'admin' && $class->getTeacherId() !== $userId) {
+            $this->error('FORBIDDEN', 'Brak uprawnień do usuwania zadań', 403);
+        }
+        
+        try {
+            $this->taskRepository->deleteTask($taskId);
+            $this->success(['message' => 'Zadanie zostało usunięte']);
+        } catch (Exception $e) {
+            error_log("Error deleting task: " . $e->getMessage());
+            $this->error('SERVER_ERROR', 'Błąd usuwania zadania', 500);
+        }
+    }
+    
+    /**
      * DELETE /api/classes/{id} - usuwanie klasy
      */
     public function delete(int $classId): void

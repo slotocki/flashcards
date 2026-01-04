@@ -23,17 +23,11 @@
 
     <div class="study-container">
         <header class="study-header">
-            <a href="javascript:history.back()" class="back-btn">← Wróć</a>
-            <h1 class="deck-title">Nauka</h1>
-            <div class="deck-stats"></div>
-        </header>
-
-        <div class="progress-section">
-            <div class="progress-bar">
-                <div class="progress-bar-fill" style="width: 0%"></div>
+            <div class="study-title-section">
+                <h1 class="deck-title">Nauka</h1>
+                <p class="deck-subtitle" id="deckSubtitle"></p>
             </div>
-            <span class="progress-text">0/0 opanowanych</span>
-        </div>
+        </header>
 
         <div class="flashcard-container">
             <div class="loader" style="display: none;">Ładowanie...</div>
@@ -44,7 +38,6 @@
                         <div class="card-content">
                             <p class="card-text">Kliknij, aby załadować kartę</p>
                         </div>
-                        <span class="card-progress status-new">Nowa</span>
                     </div>
                     <div class="card-back">
                         <div class="card-content">
@@ -59,22 +52,23 @@
 
         <div class="study-controls">
             <button id="dontKnowBtn" class="btn-answer btn-dont-know">
-                <span class="btn-icon">✕</span>
-                <span class="btn-label">Nie wiem</span>
-                <span class="btn-key">←</span>
-            </button>
-            <button id="flipBtn" class="btn-flip">
-                <span>Odwróć</span>
+                Nie wiem
             </button>
             <button id="knowBtn" class="btn-answer btn-know">
-                <span class="btn-icon">✓</span>
-                <span class="btn-label">Wiem</span>
-                <span class="btn-key">→</span>
+                Wiem
             </button>
         </div>
 
-        <div class="keyboard-hints">
-            <p>Skróty klawiszowe: <kbd>Spacja</kbd> odwróć | <kbd>←</kbd> nie wiem | <kbd>→</kbd> wiem</p>
+        <div class="progress-section">
+            <h3 class="progress-title">Progres</h3>
+            <div class="progress-bar">
+                <div class="progress-bar-fill" style="width: 0%"></div>
+            </div>
+            <span class="progress-text">0/0 opanowanych</span>
+        </div>
+
+        <div class="back-link-section">
+            <a href="javascript:history.back()" class="back-link">Wyjdź</a>
         </div>
     </div>
 

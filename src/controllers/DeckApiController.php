@@ -20,8 +20,8 @@ class DeckApiController extends ApiController
     }
 
     /**
-     * GET /api/classes/{classId}/decks - lista decków
-     * POST /api/classes/{classId}/decks - tworzenie decku (teacher only)
+     * GET /api/classes/{classId}/decks - lista decków przypisanych do klasy
+     * POST /api/classes/{classId}/decks - przypisanie istniejącego decku do klasy
      */
     public function index(int $classId): void
     {
@@ -39,7 +39,7 @@ class DeckApiController extends ApiController
         }
         
         if ($this->isPost()) {
-            $this->createDeck($classId, $class);
+            $this->assignDeckToClass($classId, $class);
             return;
         }
         
@@ -49,17 +49,104 @@ class DeckApiController extends ApiController
         
         $this->success($decks);
     }
-
+    
     /**
-     * Tworzenie nowego decku
+     * Przypisuje deck do klasy
      */
-    private function createDeck(int $classId, $class): void
+    private function assignDeckToClass(int $classId, $class): void
     {
-        // Tylko nauczyciel klasy może tworzyć decki
         $userId = $this->getUserId();
         $role = $this->getUserRole();
         
         if ($role !== 'admin' && !($role === 'teacher' && $class->getTeacherId() === $userId)) {
+            $this->error('FORBIDDEN', 'Brak uprawnień', 403);
+        }
+        
+        $input = $this->getJsonInput();
+        $deckId = (int) ($input['deckId'] ?? 0);
+        
+        if (!$deckId) {
+            $this->error('MISSING_DECK', 'Nie podano ID zestawu', 400);
+        }
+        
+        // Sprawdź czy deck istnieje i należy do tego nauczyciela
+        $deck = $this->deckRepository->getDeckById($deckId);
+        if (!$deck) {
+            $this->error('NOT_FOUND', 'Zestaw nie istnieje', 404);
+        }
+        
+        if ($role !== 'admin' && $deck->getTeacherId() !== $userId) {
+            $this->error('FORBIDDEN', 'To nie jest Twój zestaw', 403);
+        }
+        
+        $this->deckRepository->assignDeckToClass($deckId, $classId);
+        $this->success(['message' => 'Zestaw przypisany do klasy']);
+    }
+    
+    /**
+     * DELETE /api/classes/{classId}/decks/{deckId} - odpięcie decku od klasy
+     */
+    public function unassignFromClass(int $classId, int $deckId): void
+    {
+        $this->requireAuth();
+        $this->requireMethod('DELETE');
+        
+        $class = $this->classRepository->getClassById($classId);
+        if (!$class) {
+            $this->error('NOT_FOUND', 'Klasa nie istnieje', 404);
+        }
+        
+        $userId = $this->getUserId();
+        $role = $this->getUserRole();
+        
+        if ($role !== 'admin' && !($role === 'teacher' && $class->getTeacherId() === $userId)) {
+            $this->error('FORBIDDEN', 'Brak uprawnień', 403);
+        }
+        
+        $this->deckRepository->unassignDeckFromClass($deckId, $classId);
+        $this->success(['message' => 'Zestaw odpięty od klasy']);
+    }
+    
+    /**
+     * GET /api/teacher/decks - wszystkie zestawy nauczyciela
+     * POST /api/teacher/decks - tworzenie nowego zestawu
+     */
+    public function teacherDecks(): void
+    {
+        $this->requireAuth();
+        
+        $role = $this->getUserRole();
+        if (!in_array($role, ['teacher', 'admin'])) {
+            $this->error('FORBIDDEN', 'Tylko nauczyciele mogą zarządzać zestawami', 403);
+        }
+        
+        if ($this->isPost()) {
+            $this->createDeck();
+            return;
+        }
+        
+        $this->requireMethod('GET');
+        
+        $userId = $this->getUserId();
+        $decks = $this->deckRepository->getTeacherDecks($userId);
+        
+        // Dodaj informację o przypisanych klasach do każdego decku
+        foreach ($decks as &$deck) {
+            $deck['assignedClasses'] = $this->deckRepository->getDeckClasses($deck['id']);
+        }
+        
+        $this->success($decks);
+    }
+
+    /**
+     * Tworzenie nowego decku (należy do nauczyciela)
+     */
+    private function createDeck(): void
+    {
+        $userId = $this->getUserId();
+        $role = $this->getUserRole();
+        
+        if (!in_array($role, ['teacher', 'admin'])) {
             $this->error('FORBIDDEN', 'Brak uprawnień do tworzenia zestawów', 403);
         }
         
@@ -73,6 +160,7 @@ class DeckApiController extends ApiController
         $level = $input['level'] ?? 'beginner';
         $imageUrl = isset($input['imageUrl']) ? trim($input['imageUrl']) : null;
         $isPublic = isset($input['isPublic']) ? (bool) $input['isPublic'] : false;
+        $classIds = $input['classIds'] ?? []; // Opcjonalne przypisanie do klas
         
         if (empty($title)) {
             $this->error('MISSING_TITLE', 'Tytuł zestawu jest wymagany', 400);
@@ -82,13 +170,25 @@ class DeckApiController extends ApiController
             $level = 'beginner';
         }
         
-        // Walidacja URL obrazka
-        if ($imageUrl && !filter_var($imageUrl, FILTER_VALIDATE_URL)) {
+        // Walidacja URL obrazka (może być ścieżka z uploadu lub URL)
+        if ($imageUrl && !str_starts_with($imageUrl, '/public/') && !filter_var($imageUrl, FILTER_VALIDATE_URL)) {
             $imageUrl = null;
         }
         
         try {
-            $deckId = $this->deckRepository->createDeck($classId, $title, $description, $level, $imageUrl, $isPublic);
+            $deckId = $this->deckRepository->createDeck($userId, $title, $description, $level, $imageUrl, $isPublic);
+            
+            // Przypisz do klas jeśli podano
+            if (!empty($classIds)) {
+                foreach ($classIds as $classId) {
+                    // Sprawdź czy nauczyciel jest właścicielem klasy
+                    $class = $this->classRepository->getClassById((int) $classId);
+                    if ($class && ($role === 'admin' || $class->getTeacherId() === $userId)) {
+                        $this->deckRepository->assignDeckToClass($deckId, (int) $classId);
+                    }
+                }
+            }
+            
             $deck = $this->deckRepository->getDeckById($deckId);
             
             $this->success($deck->toArray(), 201);
@@ -113,9 +213,25 @@ class DeckApiController extends ApiController
             $this->error('NOT_FOUND', 'Zestaw nie istnieje', 404);
         }
         
-        // Sprawdź dostęp do klasy
-        $classId = $deck->getClassId();
-        if (!$this->classRepository->hasAccessToClass($classId, $this->getUserId(), $this->getUserRole())) {
+        $userId = $this->getUserId();
+        $role = $this->getUserRole();
+        
+        // Sprawdź dostęp - właściciel, admin, lub student przypisany do klasy z tym deckiem
+        $hasAccess = $role === 'admin' || $deck->getTeacherId() === $userId;
+        
+        if (!$hasAccess) {
+            // Sprawdź czy student ma dostęp przez przypisanie do klasy
+            $deckClasses = $this->deckRepository->getDeckClasses($deckId);
+            foreach ($deckClasses as $class) {
+                if ($this->classRepository->hasAccessToClass($class['id'], $userId, $role)) {
+                    $hasAccess = true;
+                    break;
+                }
+            }
+        }
+        
+        // Publiczne decki są dostępne dla wszystkich
+        if (!$hasAccess && !$deck->isPublic()) {
             $this->error('FORBIDDEN', 'Brak dostępu do tego zestawu', 403);
         }
         
@@ -132,7 +248,10 @@ class DeckApiController extends ApiController
         }
         
         $this->requireMethod('GET');
-        $this->success($deck->toArray());
+        
+        $deckArray = $deck->toArray();
+        $deckArray['assignedClasses'] = $this->deckRepository->getDeckClasses($deckId);
+        $this->success($deckArray);
     }
 
     /**
@@ -140,12 +259,11 @@ class DeckApiController extends ApiController
      */
     private function updateDeck($deck): void
     {
-        // Tylko nauczyciel klasy może aktualizować decki
-        $class = $this->classRepository->getClassById($deck->getClassId());
         $userId = $this->getUserId();
         $role = $this->getUserRole();
         
-        if ($role !== 'admin' && !($role === 'teacher' && $class->getTeacherId() === $userId)) {
+        // Tylko właściciel lub admin może edytować
+        if ($role !== 'admin' && $deck->getTeacherId() !== $userId) {
             $this->error('FORBIDDEN', 'Brak uprawnień do edycji zestawu', 403);
         }
         
@@ -168,8 +286,8 @@ class DeckApiController extends ApiController
             $level = 'beginner';
         }
         
-        // Walidacja URL obrazka
-        if ($imageUrl && !filter_var($imageUrl, FILTER_VALIDATE_URL)) {
+        // Walidacja URL obrazka (może być ścieżka z uploadu lub URL)
+        if ($imageUrl && !str_starts_with($imageUrl, '/public/') && !filter_var($imageUrl, FILTER_VALIDATE_URL)) {
             $imageUrl = null;
         }
         
@@ -189,12 +307,11 @@ class DeckApiController extends ApiController
      */
     private function deleteDeck($deck): void
     {
-        // Tylko nauczyciel klasy może usuwać decki
-        $class = $this->classRepository->getClassById($deck->getClassId());
         $userId = $this->getUserId();
         $role = $this->getUserRole();
         
-        if ($role !== 'admin' && !($role === 'teacher' && $class->getTeacherId() === $userId)) {
+        // Tylko właściciel lub admin może usunąć
+        if ($role !== 'admin' && $deck->getTeacherId() !== $userId) {
             $this->error('FORBIDDEN', 'Brak uprawnień do usunięcia zestawu', 403);
         }
         
@@ -221,9 +338,25 @@ class DeckApiController extends ApiController
             $this->error('NOT_FOUND', 'Zestaw nie istnieje', 404);
         }
         
-        // Sprawdź dostęp do klasy
-        $classId = $deck->getClassId();
-        if (!$this->classRepository->hasAccessToClass($classId, $this->getUserId(), $this->getUserRole())) {
+        $userId = $this->getUserId();
+        $role = $this->getUserRole();
+        
+        // Sprawdź dostęp: właściciel, admin, lub student przypisany do klasy z tym deckiem
+        $hasAccess = $role === 'admin' || $deck->getTeacherId() === $userId;
+        
+        if (!$hasAccess) {
+            // Sprawdź czy student ma dostęp przez przypisanie do klasy
+            $deckClasses = $this->deckRepository->getDeckClasses($deckId);
+            foreach ($deckClasses as $class) {
+                if ($this->classRepository->hasAccessToClass($class['id'], $userId, $role)) {
+                    $hasAccess = true;
+                    break;
+                }
+            }
+        }
+        
+        // Publiczne decki są dostępne dla wszystkich
+        if (!$hasAccess && !$deck->isPublic()) {
             $this->error('FORBIDDEN', 'Brak dostępu do tego zestawu', 403);
         }
         
@@ -244,12 +377,11 @@ class DeckApiController extends ApiController
      */
     private function createCard($deck): void
     {
-        // Tylko nauczyciel klasy może tworzyć karty
-        $class = $this->classRepository->getClassById($deck->getClassId());
         $userId = $this->getUserId();
         $role = $this->getUserRole();
         
-        if ($role !== 'admin' && !($role === 'teacher' && $class->getTeacherId() === $userId)) {
+        // Tylko właściciel decku lub admin może tworzyć karty
+        if ($role !== 'admin' && $deck->getTeacherId() !== $userId) {
             $this->error('FORBIDDEN', 'Brak uprawnień do tworzenia fiszek', 403);
         }
         
@@ -275,5 +407,129 @@ class DeckApiController extends ApiController
             error_log("Error creating card: " . $e->getMessage());
             $this->error('SERVER_ERROR', 'Błąd podczas tworzenia fiszki', 500);
         }
+    }
+    
+    /**
+     * POST /api/upload/deck-image - upload obrazka okładki dla zestawu
+     */
+    public function uploadDeckImage(): void
+    {
+        $this->requireMethod('POST');
+        $this->requireAuth();
+        
+        // Sprawdź czy użytkownik jest nauczycielem lub adminem
+        $role = $this->getUserRole();
+        if (!in_array($role, ['teacher', 'admin'])) {
+            $this->error('FORBIDDEN', 'Tylko nauczyciele mogą dodawać obrazki', 403);
+        }
+        
+        if (!isset($_FILES['image']) || $_FILES['image']['error'] !== UPLOAD_ERR_OK) {
+            $this->error('NO_FILE', 'Nie przesłano pliku lub wystąpił błąd', 400);
+        }
+        
+        $file = $_FILES['image'];
+        $maxSize = 2 * 1024 * 1024; // 2MB
+        $allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+        $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+        
+        // Walidacja rozmiaru
+        if ($file['size'] > $maxSize) {
+            $this->error('FILE_TOO_LARGE', 'Plik jest za duży. Maksymalny rozmiar: 2MB', 400);
+        }
+        
+        // Walidacja typu MIME
+        $finfo = new finfo(FILEINFO_MIME_TYPE);
+        $mimeType = $finfo->file($file['tmp_name']);
+        
+        if (!in_array($mimeType, $allowedTypes)) {
+            $this->error('INVALID_TYPE', 'Nieprawidłowy format pliku. Dozwolone: JPG, PNG, GIF, WEBP', 400);
+        }
+        
+        // Pobierz rozszerzenie z nazwy pliku
+        $originalName = $file['name'];
+        $extension = strtolower(pathinfo($originalName, PATHINFO_EXTENSION));
+        
+        if (!in_array($extension, $allowedExtensions)) {
+            $this->error('INVALID_EXTENSION', 'Nieprawidłowe rozszerzenie pliku', 400);
+        }
+        
+        // Generuj unikalną nazwę pliku
+        $filename = uniqid('deck_') . '_' . time() . '.' . $extension;
+        
+        // Folder docelowy
+        $uploadDir = __DIR__ . '/../../public/images/decks/';
+        
+        // Utwórz folder jeśli nie istnieje
+        if (!is_dir($uploadDir)) {
+            mkdir($uploadDir, 0755, true);
+        }
+        
+        $targetPath = $uploadDir . $filename;
+        
+        // Przenieś plik
+        if (!move_uploaded_file($file['tmp_name'], $targetPath)) {
+            error_log("Failed to move uploaded file to: " . $targetPath);
+            $this->error('UPLOAD_FAILED', 'Nie udało się zapisać pliku', 500);
+        }
+        
+        // Zwróć ścieżkę do pliku (relatywną do public)
+        $publicPath = '/public/images/decks/' . $filename;
+        
+        $this->success(['path' => $publicPath]);
+    }
+    
+    /**
+     * PUT /api/decks/{deckId}/assign - przypisuje deck do wielu klas
+     */
+    public function assignToClasses(int $deckId): void
+    {
+        $this->requireAuth();
+        $this->requireMethod('PUT');
+        
+        $deck = $this->deckRepository->getDeckById($deckId);
+        if (!$deck) {
+            $this->error('NOT_FOUND', 'Zestaw nie istnieje', 404);
+        }
+        
+        $userId = $this->getUserId();
+        $role = $this->getUserRole();
+        
+        // Tylko właściciel lub admin
+        if ($role !== 'admin' && $deck->getTeacherId() !== $userId) {
+            $this->error('FORBIDDEN', 'Brak uprawnień', 403);
+        }
+        
+        $input = $this->getJsonInput();
+        $classIds = $input['classIds'] ?? [];
+        
+        if (!is_array($classIds)) {
+            $this->error('INVALID_DATA', 'classIds musi być tablicą', 400);
+        }
+        
+        // Pobierz aktualne przypisania
+        $currentClasses = $this->deckRepository->getDeckClasses($deckId);
+        $currentClassIds = array_column($currentClasses, 'id');
+        
+        // Dodaj nowe przypisania
+        foreach ($classIds as $classId) {
+            $classId = (int) $classId;
+            if (!in_array($classId, $currentClassIds)) {
+                // Sprawdź czy nauczyciel jest właścicielem klasy
+                $class = $this->classRepository->getClassById($classId);
+                if ($class && ($role === 'admin' || $class->getTeacherId() === $userId)) {
+                    $this->deckRepository->assignDeckToClass($deckId, $classId);
+                }
+            }
+        }
+        
+        // Usuń stare przypisania które nie są w nowej liście
+        foreach ($currentClassIds as $currentClassId) {
+            if (!in_array($currentClassId, $classIds)) {
+                $this->deckRepository->unassignDeckFromClass($deckId, $currentClassId);
+            }
+        }
+        
+        $updatedClasses = $this->deckRepository->getDeckClasses($deckId);
+        $this->success(['assignedClasses' => $updatedClasses]);
     }
 }

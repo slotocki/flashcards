@@ -98,8 +98,13 @@
                 const result = await API.decks.listByClass(classId);
                 
                 if (result.ok && result.data.length > 0) {
-                    container.innerHTML = result.data.map(deck => `
+                    container.innerHTML = result.data.map(deck => {
+                        const imageUrl = deck.imageUrl || deck.image_path || '/public/images/default-deck.png';
+                        return `
                         <div class="deck-card-large">
+                            <div class="deck-card-image">
+                                <img src="${imageUrl}" alt="${escapeHtml(deck.title)}" onerror="this.src='/public/images/default-deck.png'">
+                            </div>
                             <div class="deck-card-content">
                                 <h3>${escapeHtml(deck.title)}</h3>
                                 <p>${deck.description || 'Brak opisu'}</p>
@@ -112,7 +117,8 @@
                                 <a href="/study?deckId=${deck.id}" class="btn-primary">Rozpocznij naukę</a>
                             </div>
                         </div>
-                    `).join('');
+                        `;
+                    }).join('');
                 } else {
                     container.innerHTML = '<p class="no-data">Brak zestawów w tej klasie</p>';
                 }

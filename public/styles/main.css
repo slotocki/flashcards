@@ -112,10 +112,6 @@ section h2 {
     gap: 1rem;
 }
 
-.flag {
-    font-size: 2rem;
-}
-
 .class-info h3 {
     font-size: 1rem;
     color: #333;
@@ -615,6 +611,23 @@ nav a.active {
     font-size: 1rem;
 }
 
+/* Language badge */
+.lang-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 36px;
+    height: 36px;
+    padding: 0.25rem 0.5rem;
+    border-radius: 6px;
+    background: #667eea;
+    color: white;
+    font-weight: 600;
+    font-size: 0.75rem;
+    letter-spacing: 0.5px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
 .join-code {
     font-size: 0.9rem;
     color: #6b7280;
@@ -1012,7 +1025,7 @@ nav a.active {
 
 /* ==================== DASHBOARD LAYOUT ==================== */
 
-/* Centering for dashboard sections */
+/* Centering for dashboard sections only */
 .class-selection,
 .search-community {
     text-align: center;
@@ -1031,6 +1044,50 @@ nav a.active {
 .class-selection .add-class {
     display: inline-block;
     margin-top: 1rem;
+}
+
+/* Class selection checkboxes in forms */
+.input-group .class-selection {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    max-height: 200px;
+    overflow-y: auto;
+    padding: 0.75rem;
+    background: #f9fafb;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    text-align: left;
+}
+
+.input-group .class-selection .checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.input-group .class-selection .checkbox-label:hover {
+    background: #e5e7eb;
+}
+
+.input-group .class-selection input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    accent-color: #4f46e5;
+}
+
+/* Deck classes info */
+.deck-classes {
+    margin-top: 0.5rem;
+    color: #6b7280;
+}
+
+.deck-classes small {
+    display: block;
 }
 
 /* Community coming soon */
@@ -1117,6 +1174,12 @@ nav a.active {
     font-weight: 600;
 }
 
+/* Account info section should be compact */
+.account-section.account-info {
+    max-width: 400px;
+    align-self: start;
+}
+
 /* ==================== CLASS VIEW PAGE FIX ==================== */
 
 .class-view-container {
@@ -1186,6 +1249,20 @@ nav a.active {
 
 .deck-card-large:hover {
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.deck-card-large .deck-card-image {
+    width: 100%;
+    height: 180px;
+    overflow: hidden;
+    border-radius: 8px;
+    margin-bottom: 0.5rem;
+}
+
+.deck-card-large .deck-card-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
 }
 
 .deck-card-content h3 {
@@ -1285,12 +1362,6 @@ nav a.active {
     display: flex;
     flex-direction: column;
     gap: 0.75rem;
-}
-
-/* Fix class card flag size */
-.class-card .flag,
-.class-card-header .flag {
-    font-size: 2rem;
 }
 
 /* ==================== RESPONSIVE IMPROVEMENTS ==================== */
@@ -1899,4 +1970,396 @@ nav a.active {
     color: #666;
     font-size: 0.9rem;
     margin-bottom: 0.5rem;
+}
+
+/* ==================== TEACHER DECK CARDS (NEW DESIGN) ==================== */
+
+.teacher-deck-card {
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    overflow: hidden;
+    transition: box-shadow 0.2s, transform 0.2s;
+    display: flex;
+    flex-direction: column;
+}
+
+.teacher-deck-card:hover {
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+}
+
+.teacher-deck-image {
+    height: 120px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.teacher-deck-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.teacher-deck-content {
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+}
+
+.teacher-deck-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.teacher-deck-header h4 {
+    margin: 0;
+    font-size: 1rem;
+    color: #1f2937;
+}
+
+.teacher-deck-desc {
+    color: #6b7280;
+    font-size: 0.85rem;
+    margin-bottom: 0.75rem;
+    line-height: 1.4;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.teacher-deck-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.teacher-deck-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: auto;
+    padding-top: 0.75rem;
+    border-top: 1px solid #e5e7eb;
+}
+
+.teacher-deck-actions .btn-sm {
+    font-size: 0.75rem;
+    padding: 0.4rem 0.6rem;
+}
+
+/* ==================== ADMIN PANEL TABS FIX ==================== */
+
+.admin-tab {
+    padding: 0.75rem 1.5rem;
+    background: #f3f4f6;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 500;
+    font-size: 0.95rem;
+    color: #374151;
+    transition: all 0.2s;
+}
+
+.admin-tab:hover {
+    background: #e5e7eb;
+}
+
+.admin-tab.active {
+    background: #667eea;
+    color: white;
+    border-color: #667eea;
+}
+
+/* ==================== TASK ITEM WITH ACTIONS ==================== */
+
+.task-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 0.75rem;
+}
+
+.task-item .task-content {
+    flex: 1;
+}
+
+.task-item h4 {
+    margin-bottom: 0.25rem;
+    color: #1f2937;
+}
+
+.task-item p {
+    color: #6b7280;
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+}
+
+.task-actions {
+    flex-shrink: 0;
+}
+
+/* ==================== LANGUAGE FLAGS ==================== */
+
+.lang-flag {
+    font-size: 1.5rem;
+    line-height: 1;
+}
+
+.lang-name {
+    font-size: 0.9rem;
+    color: #374151;
+    font-weight: 500;
+}
+
+.class-card-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.5rem;
+}
+
+.class-card-header .lang-flag {
+    font-size: 1.75rem;
+}
+
+.class-card-header .lang-name {
+    font-size: 0.85rem;
+    color: #6b7280;
+}
+
+.class-card-header h3 {
+    font-size: 1rem;
+    margin: 0;
+}
+
+/* ==================== DECK MANAGE MODAL ==================== */
+
+.manage-tabs {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+    border-bottom: 2px solid #e5e7eb;
+    padding-bottom: 0.5rem;
+}
+
+.manage-tab {
+    padding: 0.5rem 1rem;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 0.95rem;
+    color: #6b7280;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -0.5rem;
+    margin-bottom: -2px;
+    transition: color 0.2s, border-color 0.2s;
+}
+
+.manage-tab:hover {
+    color: #374151;
+}
+
+.manage-tab.active {
+    color: #667eea;
+    border-bottom-color: #667eea;
+    font-weight: 500;
+}
+
+.manage-content {
+    min-height: 200px;
+}
+
+.cards-manager-header {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 1rem;
+}
+
+.manage-info {
+    color: #6b7280;
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+}
+
+.modal-body .class-selection {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    max-height: 250px;
+    overflow-y: auto;
+    padding: 0.75rem;
+    background: #f9fafb;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+}
+
+.sharing-options {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.sharing-option {
+    padding: 1rem;
+    background: #f9fafb;
+    border-radius: 8px;
+}
+
+.option-desc {
+    color: #6b7280;
+    font-size: 0.85rem;
+    margin-top: 0.5rem;
+    margin-left: 1.5rem;
+}
+
+.share-link-row {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.75rem;
+}
+
+.share-link-row input {
+    flex: 1;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    background: #fff;
+}
+
+.danger-zone {
+    background: #fef2f2;
+    border-top: 1px solid #fecaca;
+}
+
+.card-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    background: #f9fafb;
+    border-radius: 6px;
+    margin-bottom: 0.5rem;
+}
+
+.card-item .card-thumbnail {
+    width: 40px;
+    height: 40px;
+    object-fit: cover;
+    border-radius: 4px;
+}
+
+.card-item .card-front {
+    flex: 1;
+    font-weight: 500;
+    color: #1f2937;
+}
+
+.card-item .separator {
+    color: #9ca3af;
+}
+
+.card-item .card-back {
+    flex: 1;
+    color: #6b7280;
+}
+
+.card-item .btn-danger {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+}
+
+.deck-placeholder-image {
+    font-size: 2.5rem;
+    color: rgba(255,255,255,0.8);
+}
+
+/* ==================== DASHBOARD STUDENT CENTERING ==================== */
+
+.class-selection,
+.search-community {
+    text-align: center;
+    max-width: 800px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.class-selection h2,
+.search-community h2 {
+    text-align: center;
+    margin-bottom: 1.5rem;
+}
+
+.class-selection .class-list {
+    text-align: left;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+/* ==================== CONFIRM MODAL ==================== */
+
+.confirm-modal .modal-content {
+    max-width: 400px;
+}
+
+.confirm-modal .modal-body {
+    text-align: center;
+    padding: 1.5rem;
+}
+
+.confirm-modal .confirm-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+}
+
+.confirm-modal .confirm-message {
+    color: #4b5563;
+    margin-bottom: 1.5rem;
+}
+
+.confirm-modal .modal-actions {
+    justify-content: center;
+}
+
+/* ==================== CLASS ITEM LANGUAGE ==================== */
+
+.class-item .class-language {
+    font-size: 0.85rem;
+    color: #667eea;
+    font-weight: 500;
+    margin-bottom: 0.25rem;
+}
+
+.class-item .flag {
+    font-size: 2rem;
+    line-height: 1;
+}
+
+.class-info {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.class-info > div {
+    display: flex;
+    flex-direction: column;
 }

@@ -296,6 +296,268 @@ class AuthApiController extends ApiController
                $length <= self::MAX_NAME_LENGTH && 
                preg_match('/^[\p{L}\s\-]+$/u', $name);
     }
+    
+    /**
+     * POST /api/auth/forgot-password - żądanie resetu hasła
+     */
+    public function forgotPassword(): void
+    {
+        $this->requireMethod('POST');
+        
+        $input = $this->getJsonInput();
+        $email = trim($input['email'] ?? '');
+        
+        if (empty($email)) {
+            $this->error('MISSING_EMAIL', 'Podaj adres email', 400);
+        }
+        
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            $this->error('INVALID_EMAIL', 'Nieprawidłowy format email', 400);
+        }
+        
+        $user = $this->userRepository->getUserByEmail($email);
+        
+        // Bezpieczeństwo: zawsze odpowiadamy tak samo (nie zdradzamy czy email istnieje)
+        if ($user) {
+            try {
+                // Generuj token resetowania hasła
+                $token = bin2hex(random_bytes(32));
+                $expiry = date('Y-m-d H:i:s', strtotime('+1 hour'));
+                
+                // Zapisz token w bazie
+                $this->userRepository->savePasswordResetToken($user->getId(), $token, $expiry);
+                
+                // Wyślij email z linkiem do resetowania
+                $this->sendPasswordResetEmail($user->getEmail(), $user->getFirstName(), $token);
+            } catch (Exception $e) {
+                error_log("Password reset error: " . $e->getMessage());
+                // Nie pokazujemy błędu użytkownikowi ze względów bezpieczeństwa
+            }
+        }
+        
+        // Zawsze zwracamy sukces (bezpieczeństwo)
+        $this->success(['message' => 'Jeśli podany adres email istnieje w systemie, wysłaliśmy na niego link do resetowania hasła.']);
+    }
+    
+    /**
+     * POST /api/auth/reset-password - reset hasła z tokenem
+     */
+    public function resetPassword(): void
+    {
+        $this->requireMethod('POST');
+        
+        $input = $this->getJsonInput();
+        $token = $input['token'] ?? '';
+        $newPassword = $input['password'] ?? '';
+        
+        if (empty($token) || empty($newPassword)) {
+            $this->error('MISSING_FIELDS', 'Wypełnij wszystkie pola', 400);
+        }
+        
+        // Walidacja nowego hasła
+        $passwordErrors = $this->validatePassword($newPassword);
+        if (!empty($passwordErrors)) {
+            $this->error('INVALID_PASSWORD', implode('. ', $passwordErrors), 400);
+        }
+        
+        // Sprawdź token
+        $resetData = $this->userRepository->getPasswordResetByToken($token);
+        
+        if (!$resetData) {
+            $this->error('INVALID_TOKEN', 'Link do resetowania hasła jest nieprawidłowy lub wygasł', 400);
+        }
+        
+        // Sprawdź czy token nie wygasł
+        if (strtotime($resetData['expires_at']) < time()) {
+            $this->userRepository->deletePasswordResetToken($token);
+            $this->error('TOKEN_EXPIRED', 'Link do resetowania hasła wygasł. Poproś o nowy.', 400);
+        }
+        
+        try {
+            // Zmień hasło
+            $hashedPassword = password_hash($newPassword, PASSWORD_BCRYPT, ['cost' => 12]);
+            $this->userRepository->updatePassword($resetData['user_id'], $hashedPassword);
+            
+            // Usuń użyty token
+            $this->userRepository->deletePasswordResetToken($token);
+            
+            $this->success(['message' => 'Hasło zostało zmienione. Możesz się teraz zalogować.']);
+        } catch (Exception $e) {
+            error_log("Password reset error: " . $e->getMessage());
+            $this->error('SERVER_ERROR', 'Wystąpił błąd podczas zmiany hasła', 500);
+        }
+    }
+    
+    /**
+     * Wysyła email z linkiem do resetowania hasła
+     */
+    private function sendPasswordResetEmail(string $email, string $firstName, string $token): bool
+    {
+        // Załaduj konfigurację email
+        require_once __DIR__ . '/../../config.php';
+        
+        if (!defined('EMAIL_HOST')) {
+            error_log("Email configuration not found");
+            return false;
+        }
+        
+        $resetUrl = "http://{$_SERVER['HTTP_HOST']}/reset-password?token={$token}";
+        
+        $subject = "Resetowanie hasła - MemoRise";
+        $htmlBody = "
+            <html>
+            <body style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;'>
+                <h2 style='color: #2196F3;'>🔐 Resetowanie hasła</h2>
+                <p>Cześć {$firstName}!</p>
+                <p>Otrzymaliśmy prośbę o resetowanie hasła do Twojego konta w MemoRise.</p>
+                <p>Kliknij poniższy przycisk, aby ustawić nowe hasło:</p>
+                <p style='text-align: center; margin: 30px 0;'>
+                    <a href='{$resetUrl}' style='background-color: #2196F3; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; display: inline-block;'>
+                        Resetuj hasło
+                    </a>
+                </p>
+                <p style='color: #666; font-size: 0.9em;'>Link wygaśnie za 1 godzinę.</p>
+                <p style='color: #666; font-size: 0.9em;'>Jeśli to nie Ty prosiłeś o reset hasła, zignoruj tę wiadomość.</p>
+                <hr style='border: none; border-top: 1px solid #eee; margin: 30px 0;'>
+                <p style='color: #999; font-size: 0.8em;'>MemoRise - Twoja platforma do nauki fiszek</p>
+            </body>
+            </html>
+        ";
+        
+        $textBody = "Cześć {$firstName}!\n\n" .
+            "Otrzymaliśmy prośbę o resetowanie hasła do Twojego konta w MemoRise.\n\n" .
+            "Skopiuj poniższy link do przeglądarki, aby ustawić nowe hasło:\n" .
+            "{$resetUrl}\n\n" .
+            "Link wygaśnie za 1 godzinę.\n\n" .
+            "Jeśli to nie Ty prosiłeś o reset hasła, zignoruj tę wiadomość.\n\n" .
+            "MemoRise - Twoja platforma do nauki fiszek";
+        
+        return $this->sendEmail($email, $subject, $htmlBody, $textBody);
+    }
+    
+    /**
+     * Wysyła email przez SMTP z obsługą STARTTLS dla portu 587
+     */
+    private function sendEmail(string $to, string $subject, string $htmlBody, string $textBody): bool
+    {
+        try {
+            $host = EMAIL_HOST;
+            $port = EMAIL_PORT;
+            $user = EMAIL_USER;
+            $pass = EMAIL_PASS;
+            $from = EMAIL_FROM;
+            $fromName = EMAIL_FROM_NAME;
+            
+            // Dla portu 587 używamy zwykłego połączenia + STARTTLS
+            // Dla portu 465 używamy SSL od początku
+            if ($port == 465) {
+                $socket = @fsockopen("ssl://{$host}", $port, $errno, $errstr, 30);
+            } else {
+                // Port 587 - zwykłe połączenie, potem STARTTLS
+                $socket = @fsockopen($host, $port, $errno, $errstr, 30);
+            }
+            
+            if (!$socket) {
+                error_log("SMTP connection failed to {$host}:{$port}: {$errstr} ({$errno})");
+                return false;
+            }
+            
+            // Czytaj odpowiedź serwera
+            $this->smtpRead($socket);
+            
+            // EHLO
+            fwrite($socket, "EHLO localhost\r\n");
+            $this->smtpRead($socket);
+            
+            // STARTTLS dla portu 587
+            if ($port == 587) {
+                fwrite($socket, "STARTTLS\r\n");
+                $response = $this->smtpRead($socket);
+                
+                if (strpos($response, '220') === false) {
+                    error_log("STARTTLS failed: {$response}");
+                    fclose($socket);
+                    return false;
+                }
+                
+                // Upgrade do TLS
+                stream_socket_enable_crypto($socket, true, STREAM_CRYPTO_METHOD_TLS_CLIENT);
+                
+                // EHLO ponownie po TLS
+                fwrite($socket, "EHLO localhost\r\n");
+                $this->smtpRead($socket);
+            }
+            
+            // AUTH LOGIN
+            fwrite($socket, "AUTH LOGIN\r\n");
+            $this->smtpRead($socket);
+            
+            fwrite($socket, base64_encode($user) . "\r\n");
+            $this->smtpRead($socket);
+            
+            fwrite($socket, base64_encode($pass) . "\r\n");
+            $response = $this->smtpRead($socket);
+            
+            if (strpos($response, '235') === false) {
+                error_log("SMTP auth failed: {$response}");
+                fclose($socket);
+                return false;
+            }
+            
+            // MAIL FROM
+            fwrite($socket, "MAIL FROM: <{$from}>\r\n");
+            $this->smtpRead($socket);
+            
+            // RCPT TO
+            fwrite($socket, "RCPT TO: <{$to}>\r\n");
+            $this->smtpRead($socket);
+            
+            // DATA
+            fwrite($socket, "DATA\r\n");
+            $this->smtpRead($socket);
+            
+            // Nagłówki i treść
+            $boundary = md5(time());
+            $headers = "From: {$fromName} <{$from}>\r\n";
+            $headers .= "To: {$to}\r\n";
+            $headers .= "Subject: {$subject}\r\n";
+            $headers .= "MIME-Version: 1.0\r\n";
+            $headers .= "Content-Type: multipart/alternative; boundary=\"{$boundary}\"\r\n";
+            $headers .= "\r\n";
+            
+            $message = "--{$boundary}\r\n";
+            $message .= "Content-Type: text/plain; charset=UTF-8\r\n";
+            $message .= "Content-Transfer-Encoding: 8bit\r\n\r\n";
+            $message .= $textBody . "\r\n\r\n";
+            $message .= "--{$boundary}\r\n";
+            $message .= "Content-Type: text/html; charset=UTF-8\r\n";
+            $message .= "Content-Transfer-Encoding: 8bit\r\n\r\n";
+            $message .= $htmlBody . "\r\n\r\n";
+            $message .= "--{$boundary}--\r\n";
+            
+            fwrite($socket, $headers . $message . "\r\n.\r\n");
+            $this->smtpRead($socket);
+            
+            // QUIT
+            fwrite($socket, "QUIT\r\n");
+            fclose($socket);
+            
+            return true;
+        } catch (Exception $e) {
+            error_log("Email sending error: " . $e->getMessage());
+            return false;
+        }
+    }
+    
+    private function smtpRead($socket): string
+    {
+        $response = '';
+        while ($line = fgets($socket, 515)) {
+            $response .= $line;
+            if (substr($line, 3, 1) == ' ') break;
+        }
+        return $response;
+    }
 
     private function validatePassword(string $password): array
     {
@@ -307,10 +569,12 @@ class AuthApiController extends ApiController
         if (strlen($password) > self::MAX_PASSWORD_LENGTH) {
             $errors[] = 'Hasło może mieć maksimum ' . self::MAX_PASSWORD_LENGTH . ' znaków';
         }
-        if (!preg_match('/[A-Z]/', $password)) {
+        // Używamy Unicode property \p{Lu} dla wielkich liter (obsługuje polskie znaki)
+        if (!preg_match('/\p{Lu}/u', $password)) {
             $errors[] = 'Hasło musi zawierać wielką literę';
         }
-        if (!preg_match('/[a-z]/', $password)) {
+        // Używamy Unicode property \p{Ll} dla małych liter (obsługuje polskie znaki)
+        if (!preg_match('/\p{Ll}/u', $password)) {
             $errors[] = 'Hasło musi zawierać małą literę';
         }
         if (!preg_match('/[0-9]/', $password)) {

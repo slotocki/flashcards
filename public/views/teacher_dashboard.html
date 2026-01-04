@@ -13,7 +13,7 @@
         </div>
         <ul>
             <li><a href="/dashboard" class="active">Strona główna</a></li>
-            <li><a href="/teacher">Panel nauczyciela</a></li>
+            <li><a href="/teacher">Twoje klasy</a></li>
             <li><a href="/account">Twoje konto</a></li>
             <li><a href="#" onclick="logout(); return false;">Wyloguj</a></li>
         </ul>
@@ -23,12 +23,25 @@
         <main>
             <section class="teacher-welcome">
                 <h1>Panel nauczyciela</h1>
-                <p>Witaj! Zarządzaj swoimi klasami, zestawami fiszek i uczniami.</p>
+                <p>Witaj! Zarządzaj swoimi zestawami fiszek i klasami.</p>
             </section>
             
+            <!-- MOJE ZESTAWY - niezależne od klas -->
             <section class="teacher-panel">
                 <div class="section-header">
-                    <h2>Twoje klasy</h2>
+                    <h2>Moje zestawy fiszek</h2>
+                    <button class="btn-primary" onclick="showCreateDeckModal()">+ Utwórz zestaw</button>
+                </div>
+                
+                <div id="teacherDecks" class="decks-grid">
+                    <p class="loading">Ładowanie zestawów...</p>
+                </div>
+            </section>
+            
+            <!-- MOJE KLASY -->
+            <section class="teacher-panel">
+                <div class="section-header">
+                    <h2>Moje klasy</h2>
                     <button class="btn-primary" onclick="showCreateClassModal()">+ Utwórz klasę</button>
                 </div>
                 
@@ -37,26 +50,24 @@
                 </div>
             </section>
 
+            <!-- Szczegóły wybranej klasy -->
             <section class="selected-class-section" id="selectedClassSection" style="display: none;">
                 <div class="section-header">
                     <h2 id="selectedClassName">Wybrana klasa</h2>
                     <div class="class-actions">
                         <span class="join-code" id="classJoinCode">Kod: </span>
+                        <button class="btn-secondary btn-sm" onclick="showAssignDecksModal()">Przypisz zestawy</button>
                         <button class="btn-danger btn-sm" onclick="deleteSelectedClass()">Usuń klasę</button>
                     </div>
                 </div>
                 
                 <div class="tabs">
-                    <button class="tab active" data-tab="decks">Zestawy</button>
+                    <button class="tab active" data-tab="classDecks">Przypisane zestawy</button>
                     <button class="tab" data-tab="tasks">Zadania</button>
                     <button class="tab" data-tab="members">Uczniowie</button>
                 </div>
                 
-                <div class="tab-content" id="decksTab">
-                    <div class="section-header">
-                        <h3>Zestawy fiszek</h3>
-                        <button class="btn-primary btn-sm" onclick="showCreateDeckModal()">+ Dodaj zestaw</button>
-                    </div>
+                <div class="tab-content" id="classDecksTab">
                     <div id="decksList" class="decks-list"></div>
                 </div>
                 
@@ -119,7 +130,7 @@
                 <h2>Dodaj nowy zestaw</h2>
                 <button class="close-btn" onclick="closeModal('createDeckModal')">&times;</button>
             </div>
-            <form id="createDeckForm">
+            <form id="createDeckForm" enctype="multipart/form-data">
                 <div class="input-group">
                     <label for="deckTitle">Tytuł zestawu</label>
                     <input type="text" id="deckTitle" name="title" required maxlength="200">
@@ -136,9 +147,54 @@
                         <option value="advanced">Zaawansowany</option>
                     </select>
                 </div>
+                <div class="input-group">
+                    <label for="deckImage">Zdjęcie poglądowe (okładka zestawu)</label>
+                    <input type="file" id="deckImage" name="deckImage" accept="image/jpeg,image/png,image/gif,image/webp">
+                    <small class="input-hint">Akceptowane formaty: JPG, PNG, GIF, WEBP (max 2MB)</small>
+                    <div id="deckImagePreview" class="image-preview" style="display: none; margin-top: 0.5rem;">
+                        <img id="deckPreviewImg" src="" alt="Podgląd" style="max-width: 200px; max-height: 150px; border-radius: 8px;">
+                        <button type="button" class="btn-sm btn-secondary" onclick="clearDeckImagePreview()" style="margin-left: 0.5rem;">Usuń</button>
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label>Przypisz do klas (opcjonalnie)</label>
+                    <div id="deckClassSelection" class="class-selection">
+                        <p class="text-muted">Ładowanie klas...</p>
+                    </div>
+                    <small class="input-hint">Możesz przypisać zestaw do wybranych klas lub udostępnić go tylko społeczności.</small>
+                </div>
+                <div class="input-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="deckIsPublic" name="isPublic">
+                        Udostępnij społeczności
+                    </label>
+                </div>
                 <div class="modal-actions">
                     <button type="button" class="btn-secondary" onclick="closeModal('createDeckModal')">Anuluj</button>
                     <button type="submit" class="btn-primary">Dodaj</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal przypisywania zestawu do klas -->
+    <div id="assignClassesModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Przypisz zestaw do klas</h2>
+                <button class="close-btn" onclick="closeModal('assignClassesModal')">&times;</button>
+            </div>
+            <form id="assignClassesForm">
+                <input type="hidden" id="assignDeckId" name="deckId">
+                <div class="input-group">
+                    <label>Wybierz klasy:</label>
+                    <div id="assignClassSelection" class="class-selection">
+                        <p class="text-muted">Ładowanie klas...</p>
+                    </div>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn-secondary" onclick="closeModal('assignClassesModal')">Anuluj</button>
+                    <button type="submit" class="btn-primary">Zapisz</button>
                 </div>
             </form>
         </div>
@@ -168,7 +224,42 @@
         </div>
     </div>
 
+    <!-- Modal tworzenia zadania -->
+    <div id="createTaskModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Dodaj zadanie</h2>
+                <button class="close-btn" onclick="closeModal('createTaskModal')">&times;</button>
+            </div>
+            <form id="createTaskForm">
+                <div class="input-group">
+                    <label for="taskTitle">Tytuł zadania</label>
+                    <input type="text" id="taskTitle" name="title" required maxlength="200">
+                </div>
+                <div class="input-group">
+                    <label for="taskDescription">Opis (opcjonalnie)</label>
+                    <textarea id="taskDescription" name="description" rows="3"></textarea>
+                </div>
+                <div class="input-group">
+                    <label for="taskDeck">Zestaw fiszek</label>
+                    <select id="taskDeck" name="deckId" required>
+                        <option value="">-- Wybierz zestaw --</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label for="taskDueDate">Termin</label>
+                    <input type="datetime-local" id="taskDueDate" name="dueDate">
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn-secondary" onclick="closeModal('createTaskModal')">Anuluj</button>
+                    <button type="submit" class="btn-primary">Dodaj</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script src="/public/scripts/api.js"></script>
+    <script src="/public/scripts/main.js"></script>
     <script src="/public/scripts/auth.js"></script>
     <script src="/public/scripts/teacher.js"></script>
 </body>
