@@ -42,6 +42,25 @@
             padding: 2rem;
             box-shadow: 0 2px 8px rgba(0,0,0,0.1);
             margin-bottom: 1.5rem;
+            display: flex;
+            gap: 2rem;
+            align-items: flex-start;
+        }
+        
+        .public-deck-header .deck-cover {
+            flex-shrink: 0;
+        }
+        
+        .public-deck-header .deck-cover img {
+            width: 200px;
+            height: 150px;
+            object-fit: cover;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .public-deck-header .deck-info {
+            flex: 1;
         }
         
         .public-deck-header h1 {
@@ -127,8 +146,8 @@
         }
         
         .preview-card-image {
-            width: 50px;
-            height: 50px;
+            width: 80px; /* Increased size */
+            height: 80px; /* Ensure visibility */
             border-radius: 6px;
             margin-right: 1rem;
             object-fit: cover;
@@ -175,6 +194,16 @@
                 padding: 1rem;
             }
             
+            .public-deck-header {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .public-deck-header .deck-cover img {
+                width: 100%;
+                max-width: 300px;
+            }
+            
             .preview-card {
                 flex-direction: column;
                 align-items: flex-start;
@@ -202,24 +231,29 @@
 
     <div class="public-deck-container">
         <div class="public-deck-header">
-            <h1 id="deckTitle">Ładowanie...</h1>
-            <p class="meta">
-                <span id="deckAuthor"></span> • <span id="deckLevel"></span>
-            </p>
-            <p class="description" id="deckDescription">Ładowanie opisu...</p>
-            <div class="deck-stats">
-                <div class="stat">
-                    <span>📚</span>
-                    <span id="cardCount">0 fiszek</span>
-                </div>
-                <div class="stat">
-                    <span>⭐</span>
-                    <span id="deckRating">0.0</span>
-                    <span id="ratingsCount">(0 ocen)</span>
-                </div>
-                <div class="stat">
-                    <span>👁️</span>
-                    <span id="viewsCount">0 wyświetleń</span>
+            <div class="deck-cover" id="deckCoverContainer" style="display: none;">
+                <img id="deckCover" src="" alt="Okładka zestawu">
+            </div>
+            <div class="deck-info">
+                <h1 id="deckTitle">Ładowanie...</h1>
+                <p class="meta">
+                    <span id="deckAuthor"></span> • <span id="deckLevel"></span>
+                </p>
+                <p class="description" id="deckDescription">Ładowanie opisu...</p>
+                <div class="deck-stats">
+                    <div class="stat">
+                        <span>📚</span>
+                        <span id="cardCount">0 fiszek</span>
+                    </div>
+                    <div class="stat">
+                        <span>⭐</span>
+                        <span id="deckRating">0.0</span>
+                        <span id="ratingsCount">(0 ocen)</span>
+                    </div>
+                    <div class="stat">
+                        <span>👁️</span>
+                        <span id="viewsCount">0 wyświetleń</span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -272,6 +306,12 @@
         });
         
         function renderDeck(deck) {
+            // Okładka zestawu
+            if (deck.imageUrl) {
+                document.getElementById('deckCover').src = deck.imageUrl;
+                document.getElementById('deckCoverContainer').style.display = 'block';
+            }
+            
             document.getElementById('deckTitle').textContent = deck.title || 'Bez tytułu';
             document.getElementById('deckDescription').textContent = deck.description || 'Brak opisu';
             document.getElementById('deckAuthor').textContent = deck.teacherName ? `Autor: ${deck.teacherName}` : '';
@@ -286,7 +326,6 @@
             if (deck.cards && deck.cards.length > 0) {
                 cardsList.innerHTML = deck.cards.map(card => `
                     <div class="preview-card">
-                        ${card.imagePath ? `<img src="${card.imagePath}" alt="" class="preview-card-image">` : ''}
                         <span class="front">${escapeHtml(card.front)}</span>
                         <span class="separator">→</span>
                         <span class="back">${escapeHtml(card.back)}</span>
@@ -302,9 +341,9 @@
         
         function getLevelLabel(level) {
             const labels = {
-                'beginner': 'Początkujący',
-                'intermediate': 'Średniozaawansowany',
-                'advanced': 'Zaawansowany'
+                'beginner': 'Poziom Początkujący',
+                'intermediate': 'Poziom Średniozaawansowany',
+                'advanced': 'Poziom Zaawansowany'
             };
             return labels[level] || level || 'Nieznany poziom';
         }
