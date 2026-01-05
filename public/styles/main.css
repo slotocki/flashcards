@@ -529,7 +529,6 @@ nav a.active {
 /* ==================== CARDS & LISTS ==================== */
 
 .class-card,
-.deck-card,
 .task-item,
 .member-item {
     background: white;
@@ -544,11 +543,17 @@ nav a.active {
     cursor: pointer;
 }
 
-.deck-card {
+/* Legacy list-style deck item (if still used somewhere) */
+.deck-list-item {
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 1rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 0.75rem;
+    transition: box-shadow 0.2s;
 }
 
 .deck-info h4 {
@@ -1303,74 +1308,7 @@ main > section.search-community {
     color: #6b7280;
 }
 
-/* Deck cards for class view */
-.decks-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 1.5rem;
-}
-
-.deck-card-large {
-    background: white;
-    border: 1px solid #e5e7eb;
-    border-radius: 12px;
-    padding: 1.5rem;
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-    transition: box-shadow 0.2s;
-}
-
-.deck-card-large:hover {
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-
-.deck-card-large .deck-card-image {
-    width: 100%;
-    height: 180px;
-    overflow: hidden;
-    border-radius: 8px;
-    margin-bottom: 0.5rem;
-}
-
-.deck-card-large .deck-card-image img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-
-.deck-card-content h3 {
-    font-size: 1.1rem;
-    margin-bottom: 0.5rem;
-    color: #1f2937;
-}
-
-.deck-card-content p {
-    color: #6b7280;
-    font-size: 0.9rem;
-    margin-bottom: 0.75rem;
-}
-
-.deck-meta {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-    align-items: center;
-    margin-top: auto;
-}
-
-.deck-card-actions {
-    margin-top: auto;
-    padding-top: 1rem;
-    border-top: 1px solid #e5e7eb;
-}
-
-.deck-card-actions .btn-primary {
-    width: 100%;
-    text-align: center;
-    text-decoration: none;
-    display: block;
-}
+/* UWAGA: Style .deck-card-large są przestarzałe - używaj .deck-card z shared.js createDeckCardHtml() */
 
 /* ==================== ADMIN PANEL FIX ==================== */
 
@@ -1545,43 +1483,48 @@ main > section.search-community {
     padding-bottom: 0.5rem;
 }
 
+/* ==================== USTANDARYZOWANE KARTY ZESTAWÓW ====================
+   Jeden szablon dla wszystkich widoków: nauczyciel, uczeń, społeczność
+   Używane przez createDeckCardHtml() z shared.js
+   ========================================================================= */
+
+/* Siatka kart */
+.deck-cards-grid,
 .decks-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 1.25rem;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.5rem;
 }
 
-/* Deck Card */
+/* Karta zestawu - główny kontener */
 .deck-card {
     background: white;
+    border: 1px solid #e5e7eb;
     border-radius: 12px;
     overflow: hidden;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-    cursor: pointer;
-    transition: transform 0.2s, box-shadow 0.2s;
-    border: 1px solid #eee;
+    display: flex;
+    flex-direction: column;
+    transition: box-shadow 0.2s, transform 0.2s;
 }
 
 .deck-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
 }
 
+.deck-card--clickable {
+    cursor: pointer;
+}
+
+/* Obrazek karty */
 .deck-card-image {
     position: relative;
-    height: 140px;
+    height: 160px;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     overflow: hidden;
-    /* make container a flex parent so placeholders/images can center and stretch */
     display: flex;
-    align-items: center !important;
-    justify-content: center !important;
-    min-height: 140px; /* ensure it doesn't collapse */
-    /* Give a sensible default width so placeholder doesn't shrink to emoji width
-       When .deck-card is a flex row, this makes the image column a stable size. */
-    width: 140px;
-    min-width: 120px;
-    flex: 0 0 140px;
+    align-items: center;
+    justify-content: center;
 }
 
 .deck-card-image img {
@@ -1590,57 +1533,14 @@ main > section.search-community {
     object-fit: cover;
 }
 
-/* Ensure any placeholder or img inside deck image containers fills area */
-.deck-card-image img {
-    width: 100% !important;
-    height: 100% !important;
-    display: block !important;
-    object-fit: cover;
+/* Placeholder gdy brak obrazka - stosowany na .deck-card-image */
+.deck-card-image.deck-image-placeholder {
+    font-size: 64px;
+    color: white;
 }
 
-.deck-card-image .image-placeholder,
-.deck-card-image .deck-placeholder-image {
-    width: 100% !important;
-    height: 100% !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    line-height: 1 !important;
-}
-
-/* For teacher deck image container (already flex in some places) ensure consistent children sizing */
-.teacher-deck-image img {
-    width: 100% !important;
-    height: 100% !important;
-    display: block !important;
-    object-fit: cover;
-}
-
-.teacher-deck-image .image-placeholder,
-.teacher-deck-image .deck-placeholder-image {
-    width: 100% !important;
-    height: 100% !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    line-height: 1 !important;
-}
-
-/* Responsive: on small screens make image area full width and stack content */
-@media (max-width: 768px) {
-    .deck-card-image {
-        width: 100% !important;
-        min-width: 0 !important;
-        flex: none !important;
-    }
-
-    /* ensure deck cards stack vertically on small screens */
-    .deck-card {
-        display: block !important;
-    }
-}
-
-.subscribed-badge {
+/* Badge subskrypcji na obrazku */
+.deck-subscribed-badge {
     position: absolute;
     top: 8px;
     right: 8px;
@@ -1652,35 +1552,92 @@ main > section.search-community {
     font-weight: 500;
 }
 
+/* Zawartość karty */
 .deck-card-content {
     padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+}
+
+/* Nagłówek z tytułem i badge publiczny */
+.deck-card-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+    flex-wrap: wrap;
 }
 
 .deck-card-title {
     font-size: 1.1rem;
     font-weight: 600;
-    margin-bottom: 0.5rem;
-    color: #333;
-    white-space: nowrap;
+    margin: 0;
+    color: #1f2937;
     overflow: hidden;
     text-overflow: ellipsis;
+    white-space: nowrap;
+    flex: 1;
 }
 
+/* Badge publiczny */
+.deck-public-badge {
+    font-size: 0.75rem;
+    padding: 0.2rem 0.5rem;
+    background: #e0f2fe;
+    color: #0284c7;
+    border-radius: 4px;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+/* Opis karty */
+.deck-card-desc {
+    color: #6b7280;
+    font-size: 0.9rem;
+    margin-bottom: 0.75rem;
+    line-height: 1.4;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* Meta informacje (autor, liczba fiszek) */
 .deck-card-meta {
     display: flex;
-    gap: 1rem;
+    flex-wrap: wrap;
+    gap: 0.75rem;
     font-size: 0.85rem;
-    color: #666;
+    color: #6b7280;
     margin-bottom: 0.75rem;
 }
 
-.deck-card-footer {
-    display: flex;
-    justify-content: space-between;
+.deck-meta-item {
+    display: inline-flex;
     align-items: center;
-    margin-bottom: 0.5rem;
+    gap: 0.25rem;
 }
 
+.deck-author::before {
+    content: '👤 ';
+}
+
+.deck-card-count::before {
+    content: '📚 ';
+}
+
+/* Stopka karty (poziom, ocena, wyświetlenia) */
+.deck-card-footer {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: auto;
+}
+
+/* Ocena gwiazdkowa */
 .deck-rating {
     display: flex;
     align-items: center;
@@ -1689,19 +1646,47 @@ main > section.search-community {
 
 .deck-rating .stars {
     color: #FFC107;
+    font-size: 0.9rem;
 }
 
-.rating-count {
+.deck-rating-count {
     font-size: 0.8rem;
-    color: #999;
+    color: #9ca3af;
 }
 
+/* Wyświetlenia */
 .deck-views {
     font-size: 0.8rem;
-    color: #999;
+    color: #9ca3af;
 }
 
-/* Level badges */
+/* Akcje karty */
+.deck-card-actions {
+    padding: 0.75rem 1rem;
+    border-top: 1px solid #e5e7eb;
+    margin-top: auto;
+}
+
+.deck-card-actions .btn-primary {
+    width: 100%;
+    text-align: center;
+    text-decoration: none;
+    display: block;
+}
+
+/* Responsywność */
+@media (max-width: 768px) {
+    .deck-cards-grid,
+    .decks-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .deck-card-image {
+        height: 140px;
+    }
+}
+
+/* ==================== POZIOMY TRUDNOŚCI ==================== */
 .level-badge {
     font-size: 0.75rem;
     padding: 0.2rem 0.5rem;
@@ -2066,132 +2051,7 @@ main > section.search-community {
     background: #d32f2f;
 }
 
-.deck-card .deck-actions {
-    display: flex;
-    gap: 0.5rem;
-    flex-wrap: wrap;
-}
-
-.deck-card .deck-info h4 {
-    display: flex;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 0.25rem;
-}
-
-/* Fix deck card in teacher panel */
-.deck-card {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    padding: 1rem;
-    border: 1px solid #e0e0e0;
-    border-radius: 8px;
-    margin-bottom: 0.75rem;
-    background: white;
-}
-
-.deck-card .deck-info {
-    flex: 1;
-}
-
-.deck-card .deck-info h4 {
-    margin-bottom: 0.5rem;
-    color: #333;
-}
-
-.deck-card .deck-info p {
-    color: #666;
-    font-size: 0.9rem;
-    margin-bottom: 0.5rem;
-}
-
-/* ==================== TEACHER DECK CARDS (NEW DESIGN) ==================== */
-
-.teacher-deck-card {
-    background: white;
-    border: 1px solid #e5e7eb;
-    border-radius: 12px;
-    overflow: hidden;
-    transition: box-shadow 0.2s, transform 0.2s;
-    display: flex;
-    flex-direction: column;
-}
-
-.teacher-deck-card:hover {
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
-    transform: translateY(-2px);
-}
-
-.teacher-deck-image {
-    height: 120px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    overflow: hidden;
-}
-
-.teacher-deck-image img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-
-.teacher-deck-content {
-    padding: 1rem;
-    display: flex;
-    flex-direction: column;
-    flex: 1;
-}
-
-.teacher-deck-header {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    margin-bottom: 0.5rem;
-    flex-wrap: wrap;
-}
-
-.teacher-deck-header h4 {
-    margin: 0;
-    font-size: 1rem;
-    color: #1f2937;
-}
-
-.teacher-deck-desc {
-    color: #6b7280;
-    font-size: 0.85rem;
-    margin-bottom: 0.75rem;
-    line-height: 1.4;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-}
-
-.teacher-deck-meta {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-    align-items: center;
-    margin-bottom: 0.5rem;
-}
-
-.teacher-deck-actions {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-    margin-top: auto;
-    padding-top: 0.75rem;
-    border-top: 1px solid #e5e7eb;
-}
-
-.teacher-deck-actions .btn-sm {
-    font-size: 0.75rem;
-    padding: 0.4rem 0.6rem;
-}
+/* UWAGA: Style .teacher-deck-card są przestarzałe - używaj .deck-card z shared.js createDeckCardHtml() */
 
 /* ==================== ADMIN PANEL TABS FIX ==================== */
 
@@ -2421,27 +2281,7 @@ main > section.search-community {
     font-size: 0.75rem;
 }
 
-.deck-placeholder-image {
-    /* Make teacher placeholder behave like image: fill the container and center icon */
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-    height: 100%;
-    font-size: 2.5rem;
-    color: rgba(255,255,255,0.9);
-    line-height: 1;
-}
-
-/* Ensure placeholder inside deck image containers fills the available area */
-.deck-card-image .deck-placeholder-image,
-.teacher-deck-image .deck-placeholder-image {
-    width: 100%;
-    height: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
+/* UWAGA: Style .deck-placeholder-image są przestarzałe - używaj .deck-image-placeholder z shared.js */
 
 /* ==================== DASHBOARD STUDENT CENTERING ==================== */
 
@@ -2531,17 +2371,7 @@ main > section.search-community {
 
 /* ==================== SHARED COMPONENTS ==================== */
 
-/* Placeholder dla obrazków */
-.image-placeholder {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    font-size: 3.5rem;
-    color: white;
-}
+/* UWAGA: Style .image-placeholder są przestarzałe - używaj .deck-image-placeholder z shared.js */
 
 /* Toast notifications */
 .toast-container {
@@ -2580,77 +2410,6 @@ main > section.search-community {
 @keyframes toastFadeOut {
     from { opacity: 1; }
     to { opacity: 0; }
-}
-
-/* Unified deck card styles */
-.deck-card {
-    background: white;
-    border-radius: 12px;
-    overflow: hidden;
-    box-shadow: var(--card-shadow);
-    transition: transform 0.2s, box-shadow 0.2s;
-    display: flex;
-    flex-direction: column;
-}
-
-.deck-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
-}
-
-.deck-card-image {
-    height: 140px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    overflow: hidden;
-}
-
-.deck-card-image img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-
-.deck-card-content {
-    padding: 1rem;
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-}
-
-.deck-card-title {
-    font-size: 1.1rem;
-    font-weight: 600;
-    margin-bottom: 0.5rem;
-    color: var(--text-color);
-}
-
-.deck-card-desc {
-    font-size: 0.85rem;
-    color: var(--text-muted);
-    margin-bottom: 0.75rem;
-    flex: 1;
-}
-
-.deck-card-meta {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-    font-size: 0.8rem;
-    color: var(--text-muted);
-    margin-bottom: 0.5rem;
-}
-
-.deck-card-footer {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-top: auto;
-}
-
-.deck-card-actions {
-    padding: 0.75rem 1rem;
-    background: #f9fafb;
-    border-top: 1px solid #eee;
 }
 
 /* Unified class card styles */

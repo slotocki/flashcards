@@ -1,5 +1,6 @@
 /**
  * Community Module - Obsługa publicznych zestawów fiszek
+ * Wykorzystuje ustandaryzowane szablony z shared.js (createDeckCardHtml)
  */
 
 // Stan aplikacji
@@ -8,24 +9,6 @@ let totalPages = 1;
 let currentSearch = '';
 let currentSort = 'popular';
 let currentDeckId = null;
-
-/**
- * Obsługuje błąd ładowania obrazka zestawu - zapobiega nieskończonej pętli
- */
-function handleDeckImageError(img) {
-    // Zapobiegaj wielokrotnemu wywoływaniu
-    if (img.dataset.errorHandled) return;
-    img.dataset.errorHandled = 'true';
-    
-    // Usuń onerror aby zapobiec nieskończonej pętli
-    img.onerror = null;
-    
-    // Zastąp obrazkiem zastępczym z odpowiednimi stylami
-    const placeholder = document.createElement('div');
-    placeholder.className = 'image-placeholder';
-    placeholder.textContent = '📚';
-    img.parentNode.replaceChild(placeholder, img);
-}
 
 // Inicjalizacja po załadowaniu strony
 document.addEventListener('DOMContentLoaded', () => {
@@ -150,10 +133,20 @@ function renderSubscribedDecks(decks, container) {
         return;
     }
     
-    container.innerHTML = decks.map(deck => createDeckCard(deck, true)).join('');
+    // Używamy ustandaryzowanego szablonu z shared.js
+    container.innerHTML = `<div class="deck-cards-grid">${decks.map(deck => {
+        deck.isSubscribed = true; // oznacz jako subskrybowany
+        return createDeckCardHtml(deck, {
+            showTeacher: true,
+            showRating: true,
+            showViews: true,
+            showSubscribedBadge: true
+        });
+    }).join('')}</div>`;
     
     // Dodaj event listenery
     container.querySelectorAll('.deck-card').forEach(card => {
+        card.style.cursor = 'pointer';
         card.addEventListener('click', () => {
             const deckId = parseInt(card.dataset.deckId);
             openDeckDetails(deckId);
@@ -206,10 +199,18 @@ function renderPublicDecks(decks, container) {
         return;
     }
     
-    container.innerHTML = `<div class="decks-grid">${decks.map(deck => createDeckCard(deck, false)).join('')}</div>`;
+    // Używamy ustandaryzowanego szablonu z shared.js
+    container.innerHTML = `<div class="deck-cards-grid">${decks.map(deck => 
+        createDeckCardHtml(deck, {
+            showTeacher: true,
+            showRating: true,
+            showViews: true
+        })
+    ).join('')}</div>`;
     
     // Dodaj event listenery
     container.querySelectorAll('.deck-card').forEach(card => {
+        card.style.cursor = 'pointer';
         card.addEventListener('click', () => {
             const deckId = parseInt(card.dataset.deckId);
             openDeckDetails(deckId);
@@ -217,44 +218,7 @@ function renderPublicDecks(decks, container) {
     });
 }
 
-/**
- * Tworzy kartę decku
- */
-function createDeckCard(deck, isSubscribed) {
-    const rating = deck.averageRating || 0;
-    const stars = getStarsHtml(rating);
-    const flag = getLanguageFlag(deck.language);
-    const levelBadge = getLevelBadge(deck.level);
-    
-    // Jeśli nie ma obrazka, użyj placeholder CSS zamiast domyślnego obrazka
-    const imageHtml = deck.imageUrl 
-        ? `<img src="${deck.imageUrl}" alt="${escapeHtml(deck.title)}" onerror="handleDeckImageError(this)" />`
-        : '<div class="image-placeholder">📚</div>';
-    
-    return `
-        <div class="deck-card" data-deck-id="${deck.id}">
-            <div class="deck-card-image">
-                ${imageHtml}
-                ${isSubscribed ? '<span class="subscribed-badge">✓ Subskrybowane</span>' : ''}
-            </div>
-            <div class="deck-card-content">
-                <h3 class="deck-card-title">${flag} ${escapeHtml(deck.title)}</h3>
-                <p class="deck-card-meta">
-                    <span class="teacher-name">${escapeHtml(deck.teacherName || 'Nieznany')}</span>
-                    <span class="card-count">${deck.cardCount || 0} fiszek</span>
-                </p>
-                <div class="deck-card-footer">
-                    ${levelBadge}
-                    <div class="deck-rating">
-                        ${stars}
-                        <span class="rating-count">(${deck.ratingsCount || 0})</span>
-                    </div>
-                </div>
-                <p class="deck-views">👁 ${deck.viewsCount || 0} wyświetleń</p>
-            </div>
-        </div>
-    `;
-}
+// Stara funkcja createDeckCard została zastąpiona przez createDeckCardHtml z shared.js
 
 /**
  * Aktualizuje paginację
@@ -506,19 +470,7 @@ function getLanguageFlag(language) {
     return getLanguageFlagHtml(language, false);
 }
 
-/**
- * Zwraca badge poziomu
- */
-function getLevelBadge(level) {
-    const levels = {
-        'beginner': { label: 'Początkujący', class: 'level-beginner' },
-        'intermediate': { label: 'Średniozaawansowany', class: 'level-intermediate' },
-        'advanced': { label: 'Zaawansowany', class: 'level-advanced' }
-    };
-    
-    const levelInfo = levels[level] || levels['beginner'];
-    return `<span class="level-badge ${levelInfo.class}">${levelInfo.label}</span>`;
-}
+// getLevelBadge i getLevelLabel są dostępne z shared.js
 
 // Sprawdź czy jest parametr share w URL
 const urlParams = new URLSearchParams(window.location.search);

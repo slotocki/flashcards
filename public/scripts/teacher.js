@@ -1,28 +1,11 @@
 /**
  * Teacher module - panel nauczyciela
  * Zestawy należą do nauczyciela i mogą być przypisane do wielu klas
+ * Wykorzystuje ustandaryzowane szablony z shared.js (createDeckCardHtml)
  */
 let selectedClassId = null;
 let selectedDeckId = null;
 let teacherClasses = [];
-
-/**
- * Obsługuje błąd ładowania obrazka - ustawia domyślny obrazek i zapobiega nieskończonej pętli
- */
-function handleImageError(img) {
-    // Zapobiegaj wielokrotnemu wywoływaniu
-    if (img.dataset.errorHandled) return;
-    img.dataset.errorHandled = 'true';
-    
-    // Usuń onerror aby zapobiec nieskończonej pętli
-    img.onerror = null;
-    
-    // Zastąp obrazkiem zastępczym lub placeholder div
-    const placeholder = document.createElement('div');
-    placeholder.className = 'deck-placeholder-image';
-    placeholder.textContent = '📚';
-    img.parentNode.replaceChild(placeholder, img);
-}
 
 document.addEventListener('DOMContentLoaded', () => {
     initTeacherPanel();
@@ -63,32 +46,15 @@ function renderTeacherDecks(decks) {
         return;
     }
     
-    container.innerHTML = decks.map(d => {
-        const imageHtml = d.imageUrl 
-            ? `<img src="${d.imageUrl}" alt="${escapeHtml(d.title)}" onerror="handleImageError(this)">`
-            : '<div class="deck-placeholder-image">📚</div>';
-        
-        return `
-        <div class="teacher-deck-card" data-deck-id="${d.id}">
-            <div class="teacher-deck-image">
-                ${imageHtml}
-            </div>
-            <div class="teacher-deck-content">
-                <div class="teacher-deck-header">
-                    <h4>${escapeHtml(d.title)}</h4>
-                    ${d.isPublic ? '<span class="public-badge">🌍 Publiczny</span>' : ''}
-                </div>
-                <p class="teacher-deck-desc">${d.description || 'Brak opisu'}</p>
-                <div class="teacher-deck-meta">
-                    <span class="level level-${d.level}">${getLevelLabel(d.level)}</span>
-                    <span class="card-count">${d.cardCount || 0} fiszek</span>
-                </div>
-                <div class="teacher-deck-actions">
-                    <button class="btn-sm btn-primary" onclick="showDeckManageModal(${d.id}, '${escapeHtml(d.title)}', ${d.isPublic}, '${d.shareToken || ''}')">Zarządzaj</button>
-                </div>
-            </div>
-        </div>
-    `}).join('');
+    // Używamy ustandaryzowanego szablonu z shared.js
+    // Kontener ma już klasę decks-grid z HTML, więc nie dodajemy wewnętrznego kontenera
+    container.innerHTML = decks.map(d => createDeckCardHtml(d, {
+        showPublicBadge: true,
+        actionButton: {
+            text: 'Zarządzaj',
+            onclick: `showDeckManageModal(${d.id}, '${escapeHtml(d.title).replace(/'/g, "\\'")}', ${d.isPublic}, '${d.shareToken || ''}')`
+        }
+    })).join('');
 }
 
 async function loadTeacherClasses() {

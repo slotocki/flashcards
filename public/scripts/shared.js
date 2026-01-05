@@ -105,65 +105,141 @@ function getLevelLabel(level) {
 
 /**
  * Tworzy HTML karty zestawu fiszek (deck card)
+ * Ustandaryzowany szablon używany w:
+ * - panelu nauczyciela (Moje zestawy)
+ * - widoku klasy (dla ucznia)
+ * - społeczności (publiczne zestawy)
+ * 
  * @param {Object} deck - obiekt zestawu
- * @param {Object} options - opcje { showTeacher, showClass, showActions, actionButtons }
+ * @param {Object} options - opcje konfiguracji karty:
+ *   - showPublicBadge: boolean - pokaż badge "Publiczny" (domyślnie false)
+ *   - showTeacher: boolean - pokaż autora (domyślnie false)
+ *   - showRating: boolean - pokaż ocenę gwiazdkową (domyślnie false)
+ *   - showViews: boolean - pokaż liczbę wyświetleń (domyślnie false)
+ *   - showSubscribedBadge: boolean - pokaż badge subskrypcji (domyślnie false)
+ *   - actionButton: { text, href, onclick } - konfiguracja przycisku akcji
+ *   - onClick: function - funkcja kliknięcia na kartę
  */
 function createDeckCardHtml(deck, options = {}) {
     const {
-        showTeacher = true,
-        showClass = false,
-        showActions = true,
-        actionButtons = null,
+        showPublicBadge = false,
+        showTeacher = false,
         showRating = false,
-        showViews = false
+        showViews = false,
+        showSubscribedBadge = false,
+        actionButton = null,
+        onClick = null
     } = options;
     
     const imageUrl = deck.imageUrl || deck.image_path || '';
-    const imageHtml = imageUrl 
+    const hasImage = !!imageUrl;
+    const imageHtml = hasImage 
         ? `<img src="${imageUrl}" alt="${escapeHtml(deck.title)}" onerror="handleImageError(this)">`
-        : '<div class="image-placeholder">📚</div>';
+        : '📚';
     
-    let metaHtml = '';
+    // Badge subskrypcji na obrazku
+    const subscribedBadgeHtml = showSubscribedBadge && deck.isSubscribed 
+        ? '<span class="deck-subscribed-badge">✓ Subskrybowane</span>' 
+        : '';
+    
+    // Badge publiczny
+    const publicBadgeHtml = showPublicBadge && deck.isPublic 
+        ? '<span class="deck-public-badge">🌍 Publiczny</span>' 
+        : '';
+    
+    // Meta informacje (autor, liczba fiszek)
+    let metaItems = [];
     if (showTeacher && deck.teacherName) {
-        metaHtml += `<span class="meta-item">👤 ${escapeHtml(deck.teacherName)}</span>`;
+        metaItems.push(`<span class="deck-meta-item deck-author">${escapeHtml(deck.teacherName)}</span>`);
     }
-    if (showClass && deck.className) {
-        metaHtml += `<span class="meta-item">📁 ${escapeHtml(deck.className)}</span>`;
-    }
-    metaHtml += `<span class="meta-item">📚 ${deck.cardCount || 0} fiszek</span>`;
+    metaItems.push(`<span class="deck-meta-item deck-card-count">${deck.cardCount || 0} fiszek</span>`);
     
-    let actionsHtml = '';
-    if (showActions) {
-        if (actionButtons) {
-            actionsHtml = actionButtons;
-        } else {
-            actionsHtml = `<a href="/study?deckId=${deck.id}" class="btn-primary btn-sm">Ucz się</a>`;
+    // Ocena i wyświetlenia
+    let extraHtml = '';
+    if (showRating) {
+        const rating = deck.averageRating || 0;
+        extraHtml += `
+            <div class="deck-rating">
+                ${getStarsHtml(rating)}
+                <span class="deck-rating-count">(${deck.ratingsCount || 0})</span>
+            </div>`;
+    }
+    if (showViews) {
+        extraHtml += `<span class="deck-views">👁 ${deck.viewsCount || 0}</span>`;
+    }
+    
+    // Przycisk akcji
+    let actionHtml = '';
+    if (actionButton) {
+        if (actionButton.href) {
+            actionHtml = `<a href="${actionButton.href}" class="btn-primary">${actionButton.text}</a>`;
+        } else if (actionButton.onclick) {
+            actionHtml = `<button class="btn-primary btn-sm" onclick="${actionButton.onclick}">${actionButton.text}</button>`;
         }
     }
     
-    let extraHtml = '';
-    if (showRating && deck.averageRating !== undefined) {
-        extraHtml += `<div class="deck-rating">${getStarsHtml(deck.averageRating)} (${deck.ratingsCount || 0})</div>`;
-    }
-    if (showViews && deck.viewsCount !== undefined) {
-        extraHtml += `<span class="deck-views">👁 ${deck.viewsCount}</span>`;
-    }
+    // Atrybut onclick
+    const onClickAttr = onClick ? `onclick="${onClick}"` : '';
+    const cursorClass = onClick ? ' deck-card--clickable' : '';
     
     return `
-        <div class="deck-card" data-deck-id="${deck.id}">
-            <div class="deck-card-image">${imageHtml}</div>
+        <div class="deck-card${cursorClass}" data-deck-id="${deck.id}" ${onClickAttr}>
+            <div class="deck-card-image${hasImage ? '' : ' deck-image-placeholder'}">
+                ${imageHtml}
+                ${subscribedBadgeHtml}
+            </div>
             <div class="deck-card-content">
-                <h3 class="deck-card-title">${escapeHtml(deck.title)}</h3>
-                <p class="deck-card-desc">${escapeHtml(deck.description) || 'Brak opisu'}</p>
-                <div class="deck-card-meta">${metaHtml}</div>
+                <div class="deck-card-header">
+                    <h3 class="deck-card-title">${escapeHtml(deck.title)}</h3>
+                    ${publicBadgeHtml}
+                </div>
+                <p class="deck-card-desc">${deck.description || 'Brak opisu'}</p>
+                <div class="deck-card-meta">${metaItems.join('')}</div>
                 <div class="deck-card-footer">
                     <span class="level level-${deck.level}">${getLevelLabel(deck.level)}</span>
                     ${extraHtml}
                 </div>
             </div>
-            ${showActions ? `<div class="deck-card-actions">${actionsHtml}</div>` : ''}
+            ${actionHtml ? `<div class="deck-card-actions">${actionHtml}</div>` : ''}
         </div>
     `;
+}
+
+/**
+ * Renderuje siatkę kart zestawów
+ * @param {Array} decks - tablica zestawów
+ * @param {HTMLElement} container - kontener do wyrenderowania
+ * @param {Object} options - opcje dla createDeckCardHtml
+ * @param {Function} onCardClick - opcjonalna funkcja wywoływana po kliknięciu karty (deck) => {}
+ */
+function renderDeckCards(decks, container, options = {}, onCardClick = null) {
+    if (!container) return;
+    
+    if (!decks || decks.length === 0) {
+        container.innerHTML = '<p class="no-data">Brak zestawów do wyświetlenia.</p>';
+        return;
+    }
+    
+    container.innerHTML = `<div class="deck-cards-grid">${
+        decks.map(deck => {
+            const cardOptions = { ...options };
+            if (onCardClick) {
+                cardOptions.onClick = `event.stopPropagation()`;
+            }
+            return createDeckCardHtml(deck, cardOptions);
+        }).join('')
+    }</div>`;
+    
+    // Dodaj event listenery jeśli przekazano onCardClick
+    if (onCardClick) {
+        container.querySelectorAll('.deck-card').forEach(card => {
+            card.addEventListener('click', (e) => {
+                const deckId = parseInt(card.dataset.deckId);
+                const deck = decks.find(d => d.id === deckId);
+                if (deck) onCardClick(deck);
+            });
+        });
+    }
 }
 
 /**
