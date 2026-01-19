@@ -1,40 +1,40 @@
 # MemoRise - Platforma do nauki fiszek
 
-**MemoRise** to interaktywna platforma edukacyjna do nauki przy użyciu fiszek (flashcards), zaprojektowana dla nauczycieli i uczniów. System umożliwia tworzenie klas, zarządzanie zestawami fiszek, śledzenie postępów w nauce oraz udostępnianie materiałów w społeczności.
+**MemoRise** to platforma edukacyjna do nauki przy użyciu fiszek (flashcards), zaprojektowana dla nauczycieli i uczniów. System umożliwia tworzenie klas, zarządzanie zestawami fiszek, śledzenie postępów w nauce oraz udostępnianie materiałów w społeczności.
 
 ---
 
 ## 🎯 Główne funkcjonalności
 
 ### Dla uczniów:
-- ✅ Dołączanie do klas za pomocą kodu zaproszenia
-- ✅ Nauka fiszek z wykorzystaniem systemu powtórek
-- ✅ Śledzenie postępów nauki w czasie rzeczywistym
-- ✅ Przeglądanie publicznych zestawów w społeczności
-- ✅ Subskrybowanie i ocenianie zestawów
-- ✅ Statystyki nauki z podziałem na zestawy
+- Dołączanie do klas za pomocą kodu zaproszenia
+- Nauka fiszek z wykorzystaniem systemu powtórek
+- Śledzenie postępów nauki w czasie rzeczywistym
+- Przeglądanie publicznych zestawów w społeczności
+- Subskrybowanie i ocenianie zestawów
+- Statystyki nauki z podziałem na zestawy
 
 ### Dla nauczycieli:
-- ✅ Tworzenie i zarządzanie klasami
-- ✅ Generowanie kodów zaproszeniowych dla klas
-- ✅ Tworzenie własnych zestawów fiszek z obrazkami
-- ✅ Przypisywanie zestawów do wielu klas jednocześnie
-- ✅ Zarządzanie członkami klas
-- ✅ Tworzenie zadań dla uczniów
-- ✅ Udostępnianie zestawów publicznie w społeczności
-- ✅ Panel zarządzania zestawami (edycja, usuwanie, publikacja)
+- Tworzenie i zarządzanie klasami
+- Generowanie kodów zaproszeniowych dla klas
+- Tworzenie własnych zestawów fiszek z obrazkami
+- Przypisywanie zestawów do wielu klas jednocześnie
+- Zarządzanie członkami klas
+- Tworzenie zadań dla uczniów
+- Udostępnianie zestawów publicznie w społeczności
+- Panel zarządzania zestawami (edycja, usuwanie, publikacja)
 
 ### Społeczność:
-- ✅ Przeglądanie publicznych zestawów innych nauczycieli
-- ✅ Filtrowanie zestawów według języka i poziomu
-- ✅ System ocen i wyświetleń zestawów
-- ✅ Subskrypcje ulubionych zestawów
-- ✅ Udostępnianie linków do zestawów
+- Przeglądanie publicznych zestawów innych nauczycieli
+- Filtrowanie zestawów według języka i poziomu
+- System ocen i wyświetleń zestawów
+- Subskrypcje ulubionych zestawów
+- Udostępnianie linków do zestawów
 
 ### Dla administratorów:
-- ✅ Zarządzanie użytkownikami (zmiana ról, blokowanie)
-- ✅ Przeglądanie wszystkich klas i użytkowników
-- ✅ Panel administracyjny z statystykami
+- Zarządzanie użytkownikami (zmiana ról, blokowanie)
+- Przeglądanie wszystkich klas i użytkowników
+- Panel administracyjny z statystykami
 
 ---
 
@@ -49,13 +49,10 @@
 ### Frontend:
 - **HTML5, CSS3** - struktura i stylizacja
 - **JavaScript** - logika aplikacji
-- **Responsive Design** - wsparcie urządzeń mobilnych
 
 ### Architektura:
 - **MVC** (Model-View-Controller)
 - **REST API** - komunikacja frontend-backend
-- **Repository Pattern** - warstwa dostępu do danych
-- **SPA-like** - Single Page Application (dynamiczne ładowanie widoków)
 
 ---
 
@@ -148,39 +145,9 @@ flashcards/
 
 ---
 
-## 🚀 Instalacja i uruchomienie
 
-### Wymagania:
-- **Docker** i **Docker Compose**
-- Port **8080** (aplikacja), **5433** (PostgreSQL), **5050** (pgAdmin)
-
-### Krok 1: Klonowanie repozytorium
-```bash
-git clone <repository-url>
-cd flashcards
-```
-
-### Krok 2: Konfiguracja
-1. Edytuj `config.php` i ustaw dane SMTP (do resetowania hasła):
-   ```php
-   const EMAIL_HOST = "twoj-smtp-host.pl";
-   const EMAIL_PORT = 587;
-   const EMAIL_USER = "twoj-email@example.com";
-   const EMAIL_PASS = "twoje-haslo";
-   ```
-
-2. **UWAGA:** Plik `config.php` zawiera wrażliwe dane i **NIE powinien** być commitowany do repozytorium!
-
-### Krok 3: Uruchomienie aplikacji
-```bash
-docker-compose up -d
-```
-
-Aplikacja będzie dostępna pod adresem: **http://localhost:8080**
-
-### Krok 4: Testowanie
-- Otwórz przeglądarkę: **http://localhost:8080/login**
-- Użyj jednego z kont testowych (patrz sekcja poniżej)
+###  Testowanie
+-  **http://localhost:8080/login**
 
 ---
 
@@ -312,50 +279,6 @@ Aplikacja będzie dostępna pod adresem: **http://localhost:8080**
 - `PUT /api/admin/users/{id}/status` - blokowanie/odblokowywanie
 
 ---
-
-## 🎨 Funkcje specjalne
-
-### System nauki:
-- **Algorytm powtórek:** System śledzi status fiszek (new/learning/known)
-- **Serię poprawnych/błędnych:** Counter streak dla każdej fiszki
-- **Inteligentne kolejkowanie:** Priorytetyzacja fiszek do nauki
-- **Skróty klawiszowe:** Nauka bez użycia myszy
-
-### Zarządzanie zestawami:
-- **Upload obrazków:** Wsparcie dla obrazków zestawów i fiszek
-- **Wielojęzyczność:** Flagi językowe (de, en, pl, es, fr, it)
-- **Poziomy trudności:** Beginner, Intermediate, Advanced
-- **Przypisywanie do wielu klas:** Jeden zestaw → wiele klas
-
-### Społeczność:
-- **System ocen:** Gwiazdki 1-5
-- **Licznik wyświetleń:** Tracking popularności
-- **Udostępnianie linkami:** Token share dla każdego zestawu
-- **Filtrowanie:** Po języku, poziomie, nazwie
-
-### Responsywność:
-- **Mobile-friendly:** Adaptacyjny layout dla urządzeń mobilnych
-- **Grid system:** Dynamiczne karty zestawów
-- **Touch support:** Wsparcie dla gestów dotykowych
-
----
-
-## 🔒 Bezpieczeństwo
-
-- ✅ **Hashowanie haseł:** bcrypt z kosztem 12
-- ✅ **Sesje PHP:** Zarządzanie sesjami użytkowników
-- ✅ **SQL Injection Protection:** Prepared statements (PDO)
-- ✅ **XSS Protection:** Escapowanie danych wyjściowych
-- ✅ **CSRF Protection:** Weryfikacja źródła requestów
-- ✅ **Role-based Access Control:** Student/Teacher/Admin
-- ✅ **Password Reset:** Bezpieczne tokeny z czasem wygaśnięcia
-
----
-
-### Znane problemy:
-- [ ] Brak walidacji rozmiaru uploadowanych plików
-- [ ] Konfiguracja SMTP w repozytorium (bezpieczeństwo)
-- [ ] Brak testów jednostkowych
 
 
  ![Diagram ERD](public/images/erd.png/)
