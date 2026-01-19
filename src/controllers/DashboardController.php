@@ -1,7 +1,6 @@
 <?php
 
 require_once 'AppController.php';
-require_once __DIR__.'/../model/Flashcard.php';
 require_once __DIR__.'/../repository/Repository.php';
 require_once __DIR__.'/../repository/UserRepository.php';
 

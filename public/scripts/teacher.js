@@ -188,6 +188,12 @@ async function showAssignClassesModal(deckId) {
 function renderClassSelection(containerId, selectedClassIds = []) {
     const container = document.getElementById(containerId);
     
+    // Check if container exists
+    if (!container) {
+        console.error(`Container with id "${containerId}" not found`);
+        return;
+    }
+    
     if (teacherClasses.length === 0) {
         container.innerHTML = '<p class="text-muted">Nie masz jeszcze żadnych klas.</p>';
         return;
@@ -543,6 +549,33 @@ function setupForms() {
             showToast('Wystąpił błąd', 'error');
         }
     });
+    
+    document.getElementById('assignDecksForm')?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        if (!selectedClassId) {
+            showToast('Wybierz najpierw klasę', 'error');
+            return;
+        }
+        
+        const checkboxes = document.querySelectorAll('input[name="assignDeckIds"]:checked');
+        const deckIds = Array.from(checkboxes).map(cb => parseInt(cb.value));
+        
+        try {
+            const result = await API.classes.assignDecks(selectedClassId, deckIds);
+            
+            if (result.ok) {
+                closeModal('assignDecksModal');
+                await loadClassDecks(selectedClassId);
+                showToast('Zestawy zostały przypisane', 'success');
+            } else {
+                showToast('Błąd: ' + (result.error?.message || 'Nie udało się przypisać zestawów'), 'error');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            showToast('Wystąpił błąd', 'error');
+        }
+    });
 }
 
 function showCreateClassModal() {
@@ -606,6 +639,53 @@ async function showCreateTaskModal() {
     document.getElementById('taskDescription').value = '';
     
     document.getElementById('createTaskModal').style.display = 'flex';
+}
+
+async function showAssignDecksModal() {
+    if (!selectedClassId) {
+        showToast('Najpierw wybierz klasę', 'error');
+        return;
+    }
+    
+    // Załaduj listę zestawów nauczyciela
+    const deckListContainer = document.getElementById('assignDecksList');
+    if (!deckListContainer) {
+        console.error('assignDecksList container not found');
+        return;
+    }
+    
+    try {
+        // Pobierz wszystkie zestawy nauczyciela
+        const teacherDecksResult = await API.decks.listTeacherDecks();
+        
+        // Pobierz zestawy już przypisane do klasy
+        const classDecksResult = await API.decks.listByClass(selectedClassId);
+        
+        if (!teacherDecksResult.ok) {
+            showToast('Błąd ładowania zestawów', 'error');
+            return;
+        }
+        
+        const teacherDecks = teacherDecksResult.data || [];
+        const assignedDeckIds = classDecksResult.ok ? (classDecksResult.data || []).map(d => d.id) : [];
+        
+        if (teacherDecks.length === 0) {
+            deckListContainer.innerHTML = '<p class="text-muted">Nie masz jeszcze żadnych zestawów. Utwórz pierwszy!</p>';
+        } else {
+            deckListContainer.innerHTML = teacherDecks.map(deck => `
+                <label class="checkbox-label">
+                    <input type="checkbox" name="assignDeckIds" value="${deck.id}" 
+                           ${assignedDeckIds.includes(deck.id) ? 'checked' : ''}>
+                    ${escapeHtml(deck.title)} (${deck.cardCount || 0} fiszek)
+                </label>
+            `).join('');
+        }
+        
+        document.getElementById('assignDecksModal').style.display = 'flex';
+    } catch (error) {
+        console.error('Error loading decks:', error);
+        showToast('Błąd ładowania zestawów', 'error');
+    }
 }
 
 function closeModal(modalId) {
@@ -884,6 +964,30 @@ async function showDeckManageModal(deckId, deckTitle, isPublic, shareToken) {
     
     document.getElementById('manageDeckTitle').textContent = `Zarządzaj: ${deckTitle}`;
     
+    // Pobierz pełne dane decku i wypełnij formularz
+    try {
+        const deckResult = await API.decks.get(deckId);
+        if (deckResult.ok) {
+            const deck = deckResult.data;
+            
+            // Wypełnij formularz ustawień
+            document.getElementById('editDeckTitle').value = deck.title || '';
+            document.getElementById('editDeckDescription').value = deck.description || '';
+            document.getElementById('editDeckLevel').value = deck.level || 'beginner';
+            
+            // Pokaż obecny obrazek jeśli istnieje
+            const currentImagePreview = document.getElementById('editDeckCurrentImage');
+            if (deck.imageUrl) {
+                currentImagePreview.src = deck.imageUrl;
+                currentImagePreview.style.display = 'block';
+            } else {
+                currentImagePreview.style.display = 'none';
+            }
+        }
+    } catch (error) {
+        console.error('Error loading deck data:', error);
+    }
+    
     // Ustaw public checkbox
     document.getElementById('manageIsPublic').checked = isPublic;
     
@@ -903,6 +1007,83 @@ async function showDeckManageModal(deckId, deckTitle, isPublic, shareToken) {
     await loadManageClasses(deckId);
     
     modal.style.display = 'flex';
+}
+
+async function saveDeckSettings() {
+    if (!managingDeckId) return;
+    
+    const form = document.getElementById('editDeckSettingsForm');
+    const formData = new FormData(form);
+    
+    const title = formData.get('title');
+    const description = formData.get('description');
+    const level = formData.get('level');
+    const imageFile = formData.get('deckImage');
+    
+    try {
+        let imageUrl = null;
+        
+        // Upload obrazka jeśli wybrano
+        if (imageFile && imageFile.size > 0) {
+            const uploadFormData = new FormData();
+            uploadFormData.append('image', imageFile);
+            
+            // Użyj bezpośrednio fetch dla FormData (nie ustawiaj Content-Type)
+            const uploadResponse = await fetch('/api/upload/deck-image', {
+                method: 'POST',
+                body: uploadFormData,
+                credentials: 'same-origin'
+            });
+            
+            const uploadResult = await uploadResponse.json();
+            
+            if (uploadResult.ok) {
+                imageUrl = uploadResult.data.path || uploadResult.data.imageUrl;
+            } else {
+                showToast('Błąd uploadu obrazka: ' + (uploadResult.error?.message || ''), 'error');
+                return;
+            }
+        }
+        
+        // Aktualizuj deck
+        const updateData = {
+            title,
+            description: description || null,
+            level
+        };
+        
+        if (imageUrl) {
+            updateData.imageUrl = imageUrl;
+        }
+        
+        const result = await API.decks.update(managingDeckId, updateData);
+        
+        if (result.ok) {
+            showToast('Ustawienia zapisane pomyślnie', 'success');
+            await loadTeacherDecks();
+            
+            // Zaktualizuj tytuł w modalu
+            document.getElementById('manageDeckTitle').textContent = `Zarządzaj: ${title}`;
+            
+            // Zaktualizuj podgląd obrazka jeśli zmieniono
+            if (imageUrl) {
+                const imgPreview = document.getElementById('editDeckCurrentImage');
+                imgPreview.src = imageUrl;
+                imgPreview.style.display = 'block';
+            }
+            
+            // Wyczyść pole wyboru pliku
+            const fileInput = document.getElementById('editDeckImage');
+            if (fileInput) {
+                fileInput.value = '';
+            }
+        } else {
+            showToast('Błąd: ' + (result.error?.message || 'Nie udało się zapisać'), 'error');
+        }
+    } catch (error) {
+        console.error('Error saving deck settings:', error);
+        showToast('Wystąpił błąd podczas zapisywania', 'error');
+    }
 }
 
 async function loadManageCards(deckId) {

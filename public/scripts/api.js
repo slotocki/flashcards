@@ -129,6 +129,10 @@ const API = {
         
         async deleteTask(classId, taskId) {
             return API.delete(`/api/classes/${classId}/tasks/${taskId}`);
+        },
+        
+        async assignDecks(classId, deckIds) {
+            return API.put(`/api/classes/${classId}/decks`, { deckIds });
         }
     },
     

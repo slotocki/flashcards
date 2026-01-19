@@ -258,6 +258,29 @@
         </div>
     </div>
 
+    <!-- Modal przypisywania zestawów do klasy -->
+    <div id="assignDecksModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Przypisz zestawy do klasy</h2>
+                <button class="close-btn" onclick="closeModal('assignDecksModal')">&times;</button>
+            </div>
+            <form id="assignDecksForm">
+                <div class="input-group">
+                    <label>Wybierz zestawy do przypisania:</label>
+                    <div id="assignDecksList" class="class-selection">
+                        <p class="text-muted">Ładowanie zestawów...</p>
+                    </div>
+                    <small class="input-hint">Zaznacz zestawy, które mają być dostępne dla uczniów w tej klasie.</small>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn-secondary" onclick="closeModal('assignDecksModal')">Anuluj</button>
+                    <button type="submit" class="btn-primary">Zapisz</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script src="/public/scripts/api.js"></script>
     <script src="/public/scripts/shared.js"></script>
     <script src="/public/scripts/main.js"></script>

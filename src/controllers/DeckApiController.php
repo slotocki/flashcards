@@ -22,6 +22,7 @@ class DeckApiController extends ApiController
     /**
      * GET /api/classes/{classId}/decks - lista decków przypisanych do klasy
      * POST /api/classes/{classId}/decks - przypisanie istniejącego decku do klasy
+     * PUT /api/classes/{classId}/decks - przypisanie wielu decków do klasy (nadpisuje poprzednie)
      */
     public function index(int $classId): void
     {
@@ -43,11 +44,63 @@ class DeckApiController extends ApiController
             return;
         }
         
+        if ($this->isPut()) {
+            $this->assignMultipleDecksToClass($classId, $class);
+            return;
+        }
+        
         $this->requireMethod('GET');
         
         $decks = $this->deckRepository->getDecksByClassId($classId);
         
         $this->success($decks);
+    }
+    
+    /**
+     * Przypisuje wiele decków do klasy (nadpisuje poprzednie przypisania)
+     */
+    private function assignMultipleDecksToClass(int $classId, $class): void
+    {
+        $userId = $this->getUserId();
+        $role = $this->getUserRole();
+        
+        if ($role !== 'admin' && !($role === 'teacher' && $class->getTeacherId() === $userId)) {
+            $this->error('FORBIDDEN', 'Brak uprawnień', 403);
+        }
+        
+        $input = $this->getJsonInput();
+        $deckIds = $input['deckIds'] ?? [];
+        
+        if (!is_array($deckIds)) {
+            $this->error('INVALID_INPUT', 'deckIds musi być tablicą', 400);
+        }
+        
+        // Sprawdź czy wszystkie decks należą do tego nauczyciela
+        foreach ($deckIds as $deckId) {
+            $deck = $this->deckRepository->getDeckById((int)$deckId);
+            if (!$deck) {
+                $this->error('NOT_FOUND', "Zestaw o ID {$deckId} nie istnieje", 404);
+            }
+            
+            if ($role !== 'admin' && $deck->getTeacherId() !== $userId) {
+                $this->error('FORBIDDEN', "Zestaw o ID {$deckId} nie należy do Ciebie", 403);
+            }
+        }
+        
+        try {
+            // Najpierw usuń wszystkie przypisania dla tej klasy
+            $this->deckRepository->unassignAllDecksFromClass($classId);
+            
+            // Następnie przypisz nowe decks
+            foreach ($deckIds as $deckId) {
+                $this->deckRepository->assignDeckToClass((int)$deckId, $classId);
+            }
+            
+            $this->success(['message' => 'Zestawy zostały przypisane do klasy']);
+        } catch (Exception $e) {
+            error_log("Error assigning decks to class: " . $e->getMessage());
+            $this->error('SERVER_ERROR', 'Błąd podczas przypisywania zestawów', 500);
+        }
     }
     
     /**

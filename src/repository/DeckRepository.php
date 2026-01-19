@@ -71,6 +71,18 @@ class DeckRepository extends Repository
     }
     
     /**
+     * Usuwa wszystkie przypisania decków dla danej klasy
+     */
+    public function unassignAllDecksFromClass(int $classId): bool
+    {
+        $stmt = $this->database->connect()->prepare('
+            DELETE FROM class_decks WHERE class_id = :class_id
+        ');
+        $stmt->bindParam(':class_id', $classId, PDO::PARAM_INT);
+        return $stmt->execute();
+    }
+    
+    /**
      * Pobiera klasy do których jest przypisany deck
      */
     public function getDeckClasses(int $deckId): array
@@ -489,6 +501,11 @@ class DeckRepository extends Repository
             $shareToken = $this->generateShareToken();
         } elseif ($isPublic === false) {
             $shareToken = null;
+        }
+        
+        // Zachowaj obecny obrazek jeśli nie podano nowego
+        if ($imageUrl === null) {
+            $imageUrl = $deck->getImageUrl();
         }
         
         $stmt = $this->database->connect()->prepare('

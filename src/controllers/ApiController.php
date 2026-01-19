@@ -141,4 +141,20 @@ class ApiController extends AppController
             $this->error('METHOD_NOT_ALLOWED', 'Metoda niedozwolona', 405);
         }
     }
+    
+    /**
+     * Sprawdza czy request to POST
+     */
+    protected function isPost(): bool
+    {
+        return $_SERVER['REQUEST_METHOD'] === 'POST';
+    }
+    
+    /**
+     * Sprawdza czy request to PUT
+     */
+    protected function isPut(): bool
+    {
+        return $_SERVER['REQUEST_METHOD'] === 'PUT';
+    }
 }

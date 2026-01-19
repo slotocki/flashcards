@@ -49,7 +49,7 @@
                 <div class="tab-content" id="decksTab">
                     <div class="section-header">
                         <h3>Zestawy fiszek</h3>
-                        <button class="btn-primary btn-sm" onclick="showCreateDeckModal()">+ Dodaj zestaw</button>
+                        <button class="btn-primary btn-sm" onclick="showAssignDecksModal()">+ Dodaj zestaw</button>
                     </div>
                     <div id="decksList" class="decks-list"></div>
                 </div>
@@ -101,54 +101,6 @@
                 <div class="modal-actions">
                     <button type="button" class="btn-secondary" onclick="closeModal('createClassModal')">Anuluj</button>
                     <button type="submit" class="btn-primary">Utwórz</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Modal tworzenia decku -->
-    <div id="createDeckModal" class="modal" style="display: none;">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>Dodaj nowy zestaw</h2>
-                <button class="close-btn" onclick="closeModal('createDeckModal')">&times;</button>
-            </div>
-            <form id="createDeckForm" enctype="multipart/form-data">
-                <div class="input-group">
-                    <label for="deckTitle">Tytuł zestawu</label>
-                    <input type="text" id="deckTitle" name="title" required maxlength="200">
-                </div>
-                <div class="input-group">
-                    <label for="deckDescription">Opis (opcjonalnie)</label>
-                    <textarea id="deckDescription" name="description" rows="3"></textarea>
-                </div>
-                <div class="input-group">
-                    <label for="deckLevel">Poziom</label>
-                    <select id="deckLevel" name="level">
-                        <option value="beginner">Początkujący</option>
-                        <option value="intermediate">Średniozaawansowany</option>
-                        <option value="advanced">Zaawansowany</option>
-                    </select>
-                </div>
-                <div class="input-group">
-                    <label for="deckImage">Zdjęcie poglądowe (okładka zestawu)</label>
-                    <input type="file" id="deckImage" name="deckImage" accept="image/jpeg,image/png,image/gif,image/webp">
-                    <small class="input-hint">Akceptowane formaty: JPG, PNG, GIF, WEBP (max 2MB)</small>
-                    <div id="deckImagePreview" class="image-preview" style="display: none; margin-top: 0.5rem;">
-                        <img id="deckPreviewImg" src="" alt="Podgląd" style="max-width: 200px; max-height: 150px; border-radius: 8px;">
-                        <button type="button" class="btn-sm btn-secondary" onclick="clearDeckImagePreview()" style="margin-left: 0.5rem;">Usuń</button>
-                    </div>
-                </div>
-                <div class="input-group checkbox-group">
-                    <label class="checkbox-label">
-                        <input type="checkbox" id="deckIsPublic" name="isPublic">
-                        <span>Udostępnij publicznie w społeczności</span>
-                    </label>
-                    <small class="input-hint">Publiczne zestawy mogą być przeglądane i subskrybowane przez wszystkich użytkowników</small>
-                </div>
-                <div class="modal-actions">
-                    <button type="button" class="btn-secondary" onclick="closeModal('createDeckModal')">Anuluj</button>
-                    <button type="submit" class="btn-primary">Dodaj</button>
                 </div>
             </form>
         </div>
@@ -207,6 +159,29 @@
                 <div class="modal-actions">
                     <button type="button" class="btn-secondary" onclick="closeModal('createTaskModal')">Anuluj</button>
                     <button type="submit" class="btn-primary">Dodaj zadanie</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal przypisywania zestawów do klasy -->
+    <div id="assignDecksModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Przypisz zestawy do klasy</h2>
+                <button class="close-btn" onclick="closeModal('assignDecksModal')">&times;</button>
+            </div>
+            <form id="assignDecksForm">
+                <div class="input-group">
+                    <label>Wybierz zestawy do przypisania:</label>
+                    <div id="assignDecksList" class="class-selection">
+                        <p class="text-muted">Ładowanie zestawów...</p>
+                    </div>
+                    <small class="input-hint">Zaznacz zestawy, które mają być dostępne dla uczniów w tej klasie.</small>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn-secondary" onclick="closeModal('assignDecksModal')">Anuluj</button>
+                    <button type="submit" class="btn-primary">Zapisz</button>
                 </div>
             </form>
         </div>
